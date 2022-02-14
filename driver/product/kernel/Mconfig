@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------
 # This confidential and proprietary software may be used only as authorized
 # by a licensing agreement from ARM Limited.
-#      (C) COPYRIGHT 2017 ARM Limited, ALL RIGHTS RESERVED
+#      (C) COPYRIGHT 2017, 2019 ARM Limited, ALL RIGHTS RESERVED
 # The entire notice above must be reproduced on all authorized copies and
 # copies may only be made to the extent permitted by a licensing agreement
 # from ARM Limited.
@@ -12,5 +12,4 @@ source "kernel/drivers/gpu/arm/midgard/Mconfig"
 
 config SMC_PROTECTED_MODE_SWITCHER
     bool
-    default y if PLATFORM_JUNO && GPU_T62X && BUILD_KERNEL_MODULES
     default n

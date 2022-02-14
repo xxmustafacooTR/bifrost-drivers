@@ -139,6 +139,7 @@ static struct sg_table *dma_buf_te_map(struct dma_buf_attachment *attachment, en
 	}
 
 	alloc->nr_device_mappings++;
+	attachment->priv = sg;
 	mutex_unlock(&attachment->dmabuf->lock);
 	return sg;
 }
@@ -156,6 +157,7 @@ static void dma_buf_te_unmap(struct dma_buf_attachment *attachment,
 
 	mutex_lock(&attachment->dmabuf->lock);
 	alloc->nr_device_mappings--;
+	attachment->priv = NULL;
 	mutex_unlock(&attachment->dmabuf->lock);
 }
 
@@ -194,6 +196,62 @@ static void dma_buf_te_release(struct dma_buf *buf)
 	kfree(alloc);
 }
 
+static int dma_buf_te_sync(struct dma_buf *dmabuf,
+			enum dma_data_direction direction,
+			bool start_cpu_access)
+{
+	struct dma_buf_attachment *attachment;
+
+	mutex_lock(&dmabuf->lock);
+
+	list_for_each_entry(attachment, &dmabuf->attachments, node) {
+		struct sg_table *sg = attachment->priv;
+		if (!sg) {
+			dev_dbg(te_device.this_device, "no mapping for device %s\n", dev_name(attachment->dev));
+			continue;
+		}
+
+		if (start_cpu_access) {
+			dev_dbg(te_device.this_device, "sync cpu with device %s\n", dev_name(attachment->dev));
+
+			dma_sync_sg_for_cpu(attachment->dev, sg->sgl, sg->nents, direction);
+		} else {
+			dev_dbg(te_device.this_device, "sync device %s with cpu\n", dev_name(attachment->dev));
+
+			dma_sync_sg_for_device(attachment->dev, sg->sgl, sg->nents, direction);
+		}
+	}
+
+	mutex_unlock(&dmabuf->lock);
+	return 0;
+}
+
+#if (KERNEL_VERSION(4, 6, 0) <= LINUX_VERSION_CODE)
+static int dma_buf_te_begin_cpu_access(struct dma_buf *dmabuf,
+					enum dma_data_direction direction)
+#else
+static int dma_buf_te_begin_cpu_access(struct dma_buf *dmabuf, size_t start,
+					size_t len,
+					enum dma_data_direction direction)
+#endif
+{
+	return dma_buf_te_sync(dmabuf, direction, true);
+}
+
+#if (KERNEL_VERSION(4, 6, 0) <= LINUX_VERSION_CODE)
+static int dma_buf_te_end_cpu_access(struct dma_buf *dmabuf,
+				enum dma_data_direction direction)
+{
+	return dma_buf_te_sync(dmabuf, direction, false);
+}
+#else
+static void dma_buf_te_end_cpu_access(struct dma_buf *dmabuf, size_t start,
+				size_t len,
+				enum dma_data_direction direction)
+{
+	dma_buf_te_sync(dmabuf, direction, false);
+}
+#endif
 
 static void dma_buf_te_mmap_open(struct vm_area_struct *vma)
 {
@@ -319,6 +377,8 @@ static struct dma_buf_ops dma_buf_te_ops = {
 	.unmap_dma_buf = dma_buf_te_unmap,
 	.release = dma_buf_te_release,
 	.mmap = dma_buf_te_mmap,
+	.begin_cpu_access = dma_buf_te_begin_cpu_access,
+	.end_cpu_access = dma_buf_te_end_cpu_access,
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
 	.kmap = dma_buf_te_kmap,
 	.kunmap = dma_buf_te_kunmap,
