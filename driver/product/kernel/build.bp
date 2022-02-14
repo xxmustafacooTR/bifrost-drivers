@@ -50,6 +50,9 @@ bob_defaults {
             "optional",
         ],
     },
+    kbuild_options: [
+        "MALI_CS_EXPERIMENTAL={{.cs_experimental}}",
+    ],
 }
 
 bob_defaults {
@@ -73,7 +76,6 @@ bob_alias {
     name: "kernel",
     srcs: [
         "dma-buf-test-exporter",
-        "smc_protected_mode_switcher",
         "memory_group_manager",
         "mali_kbase",
     ],

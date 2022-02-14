@@ -1,5 +1,5 @@
 #
-# (C) COPYRIGHT 2017 ARM Limited. All rights reserved.
+# (C) COPYRIGHT 2019 ARM Limited. All rights reserved.
 #
 # This program is free software and is provided to you under the terms of the
 # GNU General Public License version 2 as published by the Free Software
@@ -19,6 +19,17 @@
 #
 #
 
-obj-$(CONFIG_SMC_PROTECTED_MODE_SWITCHER) := smc_protected_mode_switcher.o
-smc_protected_mode_switcher-y := protected_mode_switcher_device.o \
-				 protected_mode_switcher_smc.o
+# linux build system bootstrap for out-of-tree module
+
+# default to building for the host
+ARCH ?= $(shell uname -m)
+
+ifeq ($(KDIR),)
+$(error Must specify KDIR to point to the kernel to target))
+endif
+
+all:
+	$(MAKE) ARCH=$(ARCH) -C $(KDIR) M=$(CURDIR) EXTRA_CFLAGS="-I$(CURDIR)/../../../include" modules CONFIG_MALI_PROTECTED_MEMORY_ALLOCATOR=m
+
+clean:
+	$(MAKE) ARCH=$(ARCH) -C $(KDIR) M=$(CURDIR) clean

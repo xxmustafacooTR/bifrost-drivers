@@ -107,8 +107,6 @@ for details.
 	      model is not found in the registered models list. If no model is specified here,
 	      a gpu-id based model is picked if available, otherwise the default model is used.
 	- mali-simple-power-model: Default model used on mali
-- protected-mode-switcher : Phandle to device implemented protected mode switching functionality.
-Refer to Documentation/devicetree/bindings/arm/smc-protected-mode-switcher.txt for one implementation.
 -  idvs-group-size : Override the IDVS group size value. Tasks are sent to
 		     cores in groups of N + 1, so i.e. 0xF means 16 tasks.
 		     Valid values are between 0 to 0x3F (including).

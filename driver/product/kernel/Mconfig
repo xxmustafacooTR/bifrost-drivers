@@ -10,11 +10,12 @@
 
 source "kernel/drivers/gpu/arm/midgard/Mconfig"
 
-config SMC_PROTECTED_MODE_SWITCHER
-	bool
-	default n
-
 config DMA_BUF_SYNC_IOCTL_SUPPORTED
 	bool "Kernel DMA buffers support DMA_BUF_IOCTL_SYNC"
 	depends on BACKEND_KERNEL
+	default y
+
+config BUILD_CSF_ONLY_MODULE
+	bool "Build CSF GPU specific kernel modules"
+	depends on BUILD_KERNEL_MODULES && GPU_HAS_CSF
 	default y
