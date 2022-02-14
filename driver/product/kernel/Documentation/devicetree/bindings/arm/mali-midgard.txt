@@ -19,13 +19,14 @@
 #
 #
 
-* ARM Mali Midgard devices
+* ARM Mali Midgard / Bifrost devices
 
 
 Required properties:
 
 - compatible : Should be mali<chip>, replacing digits with x from the back,
-until malit<Major>xx, ending with arm,mali-midgard, the latter not optional.
+until malit<Major>xx, and it must end with one of: "arm,malit6xx" or
+"arm,mali-midgard" or "arm,mali-bifrost"
 - reg : Physical base address of the device and length of the register area.
 - interrupts : Contains the three IRQ lines required by T-6xx devices
 - interrupt-names : Contains the names of IRQ resources in the order they were
