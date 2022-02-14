@@ -1,6 +1,6 @@
 /*
  *
- * (C) COPYRIGHT 2012-2018 ARM Limited. All rights reserved.
+ * (C) COPYRIGHT 2012-2019 ARM Limited. All rights reserved.
  *
  * This program is free software and is provided to you under the terms of the
  * GNU General Public License version 2 as published by the Free Software
@@ -58,6 +58,11 @@ struct dma_buf_te_alloc {
 	void *contig_cpu_addr;
 };
 
+struct dma_buf_te_attachment {
+	struct sg_table *sg;
+	bool attachment_mapped;
+};
+
 static struct miscdevice te_device;
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0))
@@ -72,6 +77,10 @@ static int dma_buf_te_attach(struct dma_buf *buf, struct dma_buf_attachment *att
 	if (alloc->fail_attach)
 		return -EFAULT;
 
+	attachment->priv = kzalloc(sizeof(struct dma_buf_te_attachment), GFP_KERNEL);
+	if (!attachment->priv)
+		return -ENOMEM;
+
 	/* dma_buf is externally locked during call */
 	alloc->nr_attached_devices++;
 	return 0;
@@ -79,11 +88,16 @@ static int dma_buf_te_attach(struct dma_buf *buf, struct dma_buf_attachment *att
 
 static void dma_buf_te_detach(struct dma_buf *buf, struct dma_buf_attachment *attachment)
 {
-	struct dma_buf_te_alloc *alloc;
-	alloc = buf->priv;
+	struct dma_buf_te_alloc *alloc = buf->priv;
+	struct dma_buf_te_attachment *pa = attachment->priv;
+
 	/* dma_buf is externally locked during call */
 
+	WARN(pa->attachment_mapped, "WARNING: dma-buf-test-exporter detected detach with open device mappings");
+
 	alloc->nr_attached_devices--;
+
+	kfree(pa);
 }
 
 static struct sg_table *dma_buf_te_map(struct dma_buf_attachment *attachment, enum dma_data_direction direction)
@@ -91,6 +105,7 @@ static struct sg_table *dma_buf_te_map(struct dma_buf_attachment *attachment, en
 	struct sg_table *sg;
 	struct scatterlist *iter;
 	struct dma_buf_te_alloc	*alloc;
+	struct dma_buf_te_attachment *pa = attachment->priv;
 	int i;
 	int ret;
 
@@ -98,6 +113,10 @@ static struct sg_table *dma_buf_te_map(struct dma_buf_attachment *attachment, en
 
 	if (alloc->fail_map)
 		return ERR_PTR(-ENOMEM);
+
+	if (WARN(pa->attachment_mapped,
+	    "WARNING: Attempted to map already mapped attachment."))
+		return ERR_PTR(-EBUSY);
 
 #if !(defined(ARCH_HAS_SG_CHAIN) || defined(CONFIG_ARCH_HAS_SG_CHAIN))
 	/* if the ARCH can't chain we can't have allocs larger than a single sg can hold */
@@ -139,7 +158,8 @@ static struct sg_table *dma_buf_te_map(struct dma_buf_attachment *attachment, en
 	}
 
 	alloc->nr_device_mappings++;
-	attachment->priv = sg;
+	pa->attachment_mapped = true;
+	pa->sg = sg;
 	mutex_unlock(&attachment->dmabuf->lock);
 	return sg;
 }
@@ -148,17 +168,22 @@ static void dma_buf_te_unmap(struct dma_buf_attachment *attachment,
 							 struct sg_table *sg, enum dma_data_direction direction)
 {
 	struct dma_buf_te_alloc *alloc;
+	struct dma_buf_te_attachment *pa = attachment->priv;
 
 	alloc = attachment->dmabuf->priv;
+
+	mutex_lock(&attachment->dmabuf->lock);
+
+	WARN(!pa->attachment_mapped, "WARNING: Unmatched unmap of attachment.");
+
+	alloc->nr_device_mappings--;
+	pa->attachment_mapped = false;
+	pa->sg = NULL;
+	mutex_unlock(&attachment->dmabuf->lock);
 
 	dma_unmap_sg(attachment->dev, sg->sgl, sg->nents, direction);
 	sg_free_table(sg);
 	kfree(sg);
-
-	mutex_lock(&attachment->dmabuf->lock);
-	alloc->nr_device_mappings--;
-	attachment->priv = NULL;
-	mutex_unlock(&attachment->dmabuf->lock);
 }
 
 static void dma_buf_te_release(struct dma_buf *buf)
@@ -205,7 +230,8 @@ static int dma_buf_te_sync(struct dma_buf *dmabuf,
 	mutex_lock(&dmabuf->lock);
 
 	list_for_each_entry(attachment, &dmabuf->attachments, node) {
-		struct sg_table *sg = attachment->priv;
+		struct dma_buf_te_attachment *pa = attachment->priv;
+		struct sg_table *sg = pa->sg;
 		if (!sg) {
 			dev_dbg(te_device.this_device, "no mapping for device %s\n", dev_name(attachment->dev));
 			continue;

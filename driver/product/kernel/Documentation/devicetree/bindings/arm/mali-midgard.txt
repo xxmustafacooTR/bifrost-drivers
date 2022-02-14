@@ -1,5 +1,5 @@
 #
-# (C) COPYRIGHT 2013-2018 ARM Limited. All rights reserved.
+# (C) COPYRIGHT 2013-2019 ARM Limited. All rights reserved.
 #
 # This program is free software and is provided to you under the terms of the
 # GNU General Public License version 2 as published by the Free Software
@@ -97,6 +97,8 @@ Refer to Documentation/devicetree/bindings/arm/smc-protected-mode-switcher.txt f
 -  idvs-group-size : Override the IDVS group size value. Tasks are sent to
 		     cores in groups of N + 1, so i.e. 0xF means 16 tasks.
 		     Valid values are between 0 to 0x3F (including).
+-  l2-size : Override L2 cache size on GPU that supports it
+-  l2-hash : Override L2 hash function on GPU that supports it
 
 Example for a Mali GPU:
 
@@ -123,6 +125,8 @@ gpu@0xfc010000 {
 	};
 
 	idvs-group-size = <0x7>;
+	l2-size = /bits/ 8 <0x10>;
+	l2-hash = /bits/ 8 <0x04>;
 };
 
 gpu_opp_table: opp_table0 {
