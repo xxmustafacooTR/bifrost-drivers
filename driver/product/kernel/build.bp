@@ -39,6 +39,7 @@ bob_defaults {
         kernel_cc: "{{.kernel_cc}}",
         kernel_hostcc: "{{.kernel_hostcc}}",
         kernel_clang_triple: "{{.kernel_clang_triple}}",
+        kernel_ld: "{{.kernel_ld}}",
     },
     install_group: "IG_kernel_modules",
     cflags: [
@@ -86,6 +87,8 @@ bob_defaults {
         "drivers/gpu/arm",
         "drivers/gpu/arm/midgard",
         "drivers/gpu/arm/midgard/backend/gpu",
+        "drivers/gpu/arm/midgard/debug",
+        "drivers/gpu/arm/midgard/debug/backend",
     ],
 }
 
