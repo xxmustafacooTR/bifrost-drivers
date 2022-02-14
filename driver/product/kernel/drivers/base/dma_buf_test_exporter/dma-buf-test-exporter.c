@@ -38,9 +38,12 @@
 #include <linux/dma-mapping.h>
 #endif
 
+/* Maximum size allowed in a single DMA_BUF_TE_ALLOC call */
+#define DMA_BUF_TE_ALLOC_MAX_SIZE ((8ull << 30) >> PAGE_SHIFT) /* 8 GB */
+
 struct dma_buf_te_alloc {
 	/* the real alloc */
-	int nr_pages;
+	size_t nr_pages;
 	struct page **pages;
 
 	/* the debug usage tracking */
@@ -106,7 +109,7 @@ static struct sg_table *dma_buf_te_map(struct dma_buf_attachment *attachment, en
 	struct scatterlist *iter;
 	struct dma_buf_te_alloc	*alloc;
 	struct dma_buf_te_attachment *pa = attachment->priv;
-	int i;
+	size_t i;
 	int ret;
 
 	alloc = attachment->dmabuf->priv;
@@ -188,7 +191,7 @@ static void dma_buf_te_unmap(struct dma_buf_attachment *attachment,
 
 static void dma_buf_te_release(struct dma_buf *buf)
 {
-	int i;
+	size_t i;
 	struct dma_buf_te_alloc *alloc;
 	alloc = buf->priv;
 	/* no need for locking */
@@ -306,8 +309,10 @@ static void dma_buf_te_mmap_close(struct vm_area_struct *vma)
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0)
 static int dma_buf_te_mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
-#else
+#elif KERNEL_VERSION(5, 1, 0) > LINUX_VERSION_CODE
 static int dma_buf_te_mmap_fault(struct vm_fault *vmf)
+#else
+static vm_fault_t dma_buf_te_mmap_fault(struct vm_fault *vmf)
 #endif
 {
 	struct dma_buf_te_alloc *alloc;
@@ -447,7 +452,8 @@ static int do_dma_buf_te_ioctl_alloc(struct dma_buf_te_ioctl_alloc __user *buf, 
 	struct dma_buf_te_ioctl_alloc alloc_req;
 	struct dma_buf_te_alloc *alloc;
 	struct dma_buf *dma_buf;
-	int i = 0;
+	size_t i = 0;
+	size_t max_nr_pages = DMA_BUF_TE_ALLOC_MAX_SIZE;
 	int fd;
 
 	if (copy_from_user(&alloc_req, buf, sizeof(alloc_req))) {
@@ -465,12 +471,15 @@ static int do_dma_buf_te_ioctl_alloc(struct dma_buf_te_ioctl_alloc __user *buf, 
 	 * map it during actual usage (mmap() still succeeds). We fail here so
 	 * userspace code can deal with it early than having driver failure
 	 * later on. */
-	if (alloc_req.size > SG_MAX_SINGLE_ALLOC) {
-		dev_err(te_device.this_device, "%s: buffer size of %llu pages exceeded the mapping limit of %lu pages",
-				__func__, alloc_req.size, SG_MAX_SINGLE_ALLOC);
+	if (max_nr_pages > SG_MAX_SINGLE_ALLOC)
+		max_nr_pages = SG_MAX_SINGLE_ALLOC;
+#endif
+
+	if (alloc_req.size > max_nr_pages) {
+		dev_err(te_device.this_device, "%s: buffer size of %llu pages exceeded the mapping limit of %zu pages",
+				__func__, alloc_req.size, max_nr_pages);
 		goto invalid_size;
 	}
-#endif
 
 	alloc = kzalloc(sizeof(struct dma_buf_te_alloc), GFP_KERNEL);
 	if (NULL == alloc) {
@@ -484,8 +493,8 @@ static int do_dma_buf_te_ioctl_alloc(struct dma_buf_te_ioctl_alloc __user *buf, 
 	alloc->pages = kzalloc(sizeof(struct page *) * alloc->nr_pages, GFP_KERNEL);
 	if (!alloc->pages) {
 		dev_err(te_device.this_device,
-				"%s: couldn't alloc %d page structures", __func__,
-				alloc->nr_pages);
+				"%s: couldn't alloc %zu page structures",
+				__func__, alloc->nr_pages);
 		goto free_alloc_object;
 	}
 
@@ -514,7 +523,8 @@ static int do_dma_buf_te_ioctl_alloc(struct dma_buf_te_ioctl_alloc __user *buf, 
 				GFP_KERNEL | __GFP_ZERO);
 #endif
 		if (!alloc->contig_cpu_addr) {
-			dev_err(te_device.this_device, "%s: couldn't alloc contiguous buffer %d pages", __func__, alloc->nr_pages);
+			dev_err(te_device.this_device, "%s: couldn't alloc contiguous buffer %zu pages",
+				__func__, alloc->nr_pages);
 			goto free_page_struct;
 		}
 		dma_aux = alloc->contig_dma_addr;
@@ -693,7 +703,7 @@ static u32 dma_te_buf_fill(struct dma_buf *dma_buf, unsigned int value)
 	unsigned int count;
 	unsigned int offset = 0;
 	int ret = 0;
-	int i;
+	size_t i;
 
 	attachment = dma_buf_attach(dma_buf, te_device.this_device);
 	if (IS_ERR_OR_NULL(attachment))
