@@ -39,6 +39,7 @@
 #include <mali_kbase_cs_experimental.h>
 
 #include <mali_kbase_caps.h>
+#include <mali_exynos_kbase_entrypoint.h>
 
 #define beenthere(kctx, f, a...)  dev_dbg(kctx->kbdev->dev, "%s:" f, __func__, ##a)
 
@@ -97,23 +98,28 @@ static bool jd_run_atom(struct kbase_jd_atom *katom)
 
 	if ((katom->core_req & BASE_JD_REQ_ATOM_TYPE) == BASE_JD_REQ_DEP) {
 		/* Dependency only atom */
-		trace_sysgraph(SGR_SUBMIT, kctx->id,
-				kbase_jd_atom_id(katom->kctx, katom));
+		trace_sysgraph(SGR_SUBMIT, kctx->id, kbase_jd_atom_id(katom->kctx, katom));
+		mali_exynos_set_count(katom, KBASE_JD_ATOM_STATE_COMPLETED, false);
 		jd_mark_atom_complete(katom);
 		return false;
 	} else if (katom->core_req & BASE_JD_REQ_SOFT_JOB) {
 		/* Soft-job */
 		if (katom->will_fail_event_code) {
 			kbase_finish_soft_job(katom);
+			mali_exynos_set_count(katom, KBASE_JD_ATOM_STATE_COMPLETED, false);
 			jd_mark_atom_complete(katom);
 			return false;
 		}
 		if (kbase_process_soft_job(katom) == 0) {
 			kbase_finish_soft_job(katom);
+			mali_exynos_set_count(katom, KBASE_JD_ATOM_STATE_COMPLETED, false);
 			jd_mark_atom_complete(katom);
 		}
 		return false;
 	}
+	
+	if (katom->status != KBASE_JD_ATOM_STATE_IN_JS)
+		mali_exynos_set_count(katom, KBASE_JD_ATOM_STATE_IN_JS, false);
 
 	katom->status = KBASE_JD_ATOM_STATE_IN_JS;
 	dev_dbg(kctx->kbdev->dev, "Atom %pK status to in JS\n", (void *)katom);
@@ -743,6 +749,8 @@ bool jd_done_nolock(struct kbase_jd_atom *katom,
 			kbase_jd_katom_dep_clear(&katom->dep[i]);
 		}
 	}
+	
+	mali_exynos_set_count(katom, KBASE_JD_ATOM_STATE_COMPLETED, false);
 
 	jd_mark_atom_complete(katom);
 
@@ -792,6 +800,8 @@ bool jd_done_nolock(struct kbase_jd_atom *katom,
 					WARN_ON(!list_empty(&node->queue));
 					kbase_finish_soft_job(node);
 				}
+				
+				mali_exynos_set_count(node, KBASE_JD_ATOM_STATE_COMPLETED, false);
 				node->status = KBASE_JD_ATOM_STATE_COMPLETED;
 			}
 
@@ -990,6 +1000,8 @@ static bool jd_submit_atom(struct kbase_context *const kctx,
 			if (dep_atom_type != BASE_JD_DEP_TYPE_ORDER &&
 					dep_atom_type != BASE_JD_DEP_TYPE_DATA) {
 				katom->event_code = BASE_JD_EVENT_JOB_CONFIG_FAULT;
+				
+				mali_exynos_set_count(katom, KBASE_JD_ATOM_STATE_COMPLETED, false);
 				katom->status = KBASE_JD_ATOM_STATE_COMPLETED;
 				dev_dbg(kbdev->dev,
 					"Atom %pK status to completed\n",
@@ -1033,6 +1045,10 @@ static bool jd_submit_atom(struct kbase_context *const kctx,
 
 			/* Atom has completed, propagate the error code if any */
 			katom->event_code = dep_atom->event_code;
+			
+			if (katom->status != KBASE_JD_ATOM_STATE_QUEUED)
+				mali_exynos_set_count(katom, KBASE_JD_ATOM_STATE_QUEUED, false);
+			
 			katom->status = KBASE_JD_ATOM_STATE_QUEUED;
 			dev_dbg(kbdev->dev, "Atom %pK status to queued\n",
 				(void *)katom);
@@ -1075,6 +1091,10 @@ static bool jd_submit_atom(struct kbase_context *const kctx,
 	 * as expected
 	 */
 	katom->event_code = BASE_JD_EVENT_DONE;
+	
+	if (katom->status != KBASE_JD_ATOM_STATE_QUEUED)
+		mali_exynos_set_count(katom, KBASE_JD_ATOM_STATE_QUEUED, false);
+	
 	katom->status = KBASE_JD_ATOM_STATE_QUEUED;
 	dev_dbg(kbdev->dev, "Atom %pK status to queued\n", (void *)katom);
 
@@ -1178,6 +1198,8 @@ static bool jd_submit_atom(struct kbase_context *const kctx,
 			katom->event_code = BASE_JD_EVENT_JOB_INVALID;
 			return jd_done_nolock(katom, NULL);
 		}
+		
+		mali_exynos_set_thread_priority(kctx);
 	} else {
 		/* Soft-job */
 		if (kbase_prepare_soft_job(katom) != 0) {
@@ -1211,6 +1233,9 @@ static bool jd_submit_atom(struct kbase_context *const kctx,
 
 	if ((katom->core_req & BASE_JD_REQ_ATOM_TYPE) != BASE_JD_REQ_DEP) {
 		bool need_to_try_schedule_context;
+		
+		if (katom->status == KBASE_JD_ATOM_STATE_QUEUED)
+			mali_exynos_set_count(katom, KBASE_JD_ATOM_STATE_IN_JS, false);
 
 		katom->status = KBASE_JD_ATOM_STATE_IN_JS;
 		dev_dbg(kctx->kbdev->dev, "Atom %pK status to in JS\n",
@@ -1223,6 +1248,10 @@ static bool jd_submit_atom(struct kbase_context *const kctx,
 
 		/* Synchronize with backend reset */
 		spin_lock_irqsave(&kbdev->hwaccess_lock, flags);
+		
+		if (katom->status != KBASE_JD_ATOM_STATE_IN_JS)
+			mali_exynos_set_count(katom, KBASE_JD_ATOM_STATE_IN_JS, false);
+		
 		status = katom->status;
 		spin_unlock_irqrestore(&kbdev->hwaccess_lock, flags);
 		if (status == KBASE_JD_ATOM_STATE_HW_COMPLETED) {

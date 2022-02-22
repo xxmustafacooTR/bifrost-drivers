@@ -95,7 +95,7 @@ void kbase_create_timeline_objects(struct kbase_device *kbdev)
 			__kbase_tlstream_tl_kbase_device_program_csg(
 				summary,
 				kbdev->gpu_props.props.raw_props.gpu_id,
-				group->kctx->id, group->handle, slot_i, 0);
+				group->handle, slot_i, 0);
 	}
 
 	/* Reset body stream buffers while holding the kctx lock.
