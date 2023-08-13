@@ -45,7 +45,7 @@
 #include <linux/workqueue.h>
 #include <linux/interrupt.h>
 
-#include <uapi/gpu/arm/midgard/mali_base_kernel.h>
+#include <uapi/gpu/arm/bv_r38p1/mali_base_kernel.h>
 #include <mali_kbase_linux.h>
 
 /*
@@ -64,7 +64,7 @@
 #include "mali_kbase_gpu_memory_debugfs.h"
 #include "mali_kbase_mem_profile_debugfs.h"
 #include "mali_kbase_gpuprops.h"
-#include <uapi/gpu/arm/midgard/mali_kbase_ioctl.h>
+#include <uapi/gpu/arm/bv_r38p1/mali_kbase_ioctl.h>
 #if !MALI_USE_CSF
 #include "mali_kbase_debug_job_fault.h"
 #include "mali_kbase_jd_debugfs.h"
@@ -438,19 +438,6 @@ static inline void kbase_free_user_buffer(
 		kfree(pages);
 	}
 }
-
-/**
- * kbase_mem_copy_from_extres() - Copy from external resources.
- *
- * @kctx:	kbase context within which the copying is to take place.
- * @buf_data:	Pointer to the information about external resources:
- *		pages pertaining to the external resource, number of
- *		pages to copy.
- *
- * Return:      0 on success, error code otherwise.
- */
-int kbase_mem_copy_from_extres(struct kbase_context *kctx,
-		struct kbase_debug_copy_buffer *buf_data);
 
 #if !MALI_USE_CSF
 int kbase_process_soft_job(struct kbase_jd_atom *katom);

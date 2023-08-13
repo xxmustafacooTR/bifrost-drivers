@@ -60,6 +60,8 @@
 
 #include <linux/of.h>
 
+#include <mali_exynos_kbase_entrypoint.h>
+
 #ifdef CONFIG_MALI_CORESTACK
 bool corestack_driver_control = true;
 #else
@@ -1136,18 +1138,17 @@ static int kbase_pm_l2_update_state(struct kbase_device *kbdev)
 				KBASE_PM_CORE_L2);
 		u64 l2_ready = kbase_pm_get_ready_cores(kbdev,
 				KBASE_PM_CORE_L2);
-#ifdef CONFIG_MALI_ARBITER_SUPPORT
-		u64 tiler_trans = kbase_pm_get_trans_cores(
-				kbdev, KBASE_PM_CORE_TILER);
-		u64 tiler_ready = kbase_pm_get_ready_cores(
-				kbdev, KBASE_PM_CORE_TILER);
 
 		/*
 		 * kbase_pm_get_ready_cores and kbase_pm_get_trans_cores
 		 * are vulnerable to corruption if gpu is lost
 		 */
 		if (kbase_is_gpu_removed(kbdev)
+#ifdef CONFIG_MALI_ARBITER_SUPPORT
 				|| kbase_pm_is_gpu_lost(kbdev)) {
+#else
+				) {
+#endif
 			backend->shaders_state =
 				KBASE_SHADERS_OFF_CORESTACK_OFF;
 			backend->hwcnt_desired = false;
@@ -1170,7 +1171,6 @@ static int kbase_pm_l2_update_state(struct kbase_device *kbdev)
 			}
 			break;
 		}
-#endif /* CONFIG_MALI_ARBITER_SUPPORT */
 
 		/* mask off ready from trans in case transitions finished
 		 * between the register reads
@@ -1221,14 +1221,12 @@ static int kbase_pm_l2_update_state(struct kbase_device *kbdev)
 			l2_power_up_done = false;
 			if (!l2_trans && l2_ready == l2_present) {
 				if (need_tiler_control(kbdev)) {
-#ifndef CONFIG_MALI_ARBITER_SUPPORT
 					u64 tiler_trans = kbase_pm_get_trans_cores(
 						kbdev, KBASE_PM_CORE_TILER);
 					u64 tiler_ready = kbase_pm_get_ready_cores(
 						kbdev, KBASE_PM_CORE_TILER);
-#endif
-
 					tiler_trans &= ~tiler_ready;
+
 					if (!tiler_trans && tiler_ready == tiler_present) {
 						KBASE_KTRACE_ADD(kbdev,
 								 PM_CORES_CHANGE_AVAILABLE_TILER,
@@ -2564,6 +2562,8 @@ bool kbase_pm_clock_off(struct kbase_device *kbdev)
 	}
 
 	KBASE_KTRACE_ADD(kbdev, PM_GPU_OFF, NULL, 0u);
+
+	mali_exynos_legacy_pm_exit_protected_mode(kbdev);
 
 	/* Disable interrupts. This also clears any outstanding interrupts */
 	kbase_pm_disable_interrupts(kbdev);

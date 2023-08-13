@@ -1354,7 +1354,7 @@ static int create_queue_group(struct kbase_context *const kctx,
 				kbase_csf_priority_check(kctx->kbdev, create->in.priority));
 			group->doorbell_nr = KBASEP_USER_DB_NR_INVALID;
 			group->faulted = false;
-			group->reevaluate_idle_status = false;
+			group->cs_unrecoverable = false;
 
 
 			group->group_uid = generate_group_uid();
@@ -2419,6 +2419,11 @@ handle_fatal_event(struct kbase_queue *const queue,
 			CS_FATAL_EXCEPTION_TYPE_FIRMWARE_INTERNAL_ERROR) {
 		queue_work(system_wq, &kbdev->csf.fw_error_work);
 	} else {
+		if (cs_fatal_exception_type == CS_FATAL_EXCEPTION_TYPE_CS_UNRECOVERABLE) {
+			queue->group->cs_unrecoverable = true;
+			if (kbase_prepare_to_reset_gpu(queue->kctx->kbdev, RESET_FLAGS_NONE))
+				kbase_reset_gpu(queue->kctx->kbdev);
+		}
 		get_queue(queue);
 		queue->cs_fatal = cs_fatal;
 		queue->cs_fatal_info = cs_fatal_info;
@@ -2878,9 +2883,6 @@ static inline void process_tracked_info_for_protm(struct kbase_device *kbdev,
 	u32 current_protm_pending_seq = scheduler->tick_protm_pending_seq;
 
 	kbase_csf_scheduler_spin_lock_assert_held(kbdev);
-
-	if (likely(current_protm_pending_seq == KBASEP_TICK_PROTM_PEND_SCAN_SEQ_NR_INVALID))
-		return;
 
 	/* Handle protm from the tracked information */
 	if (track->idle_seq < current_protm_pending_seq) {
