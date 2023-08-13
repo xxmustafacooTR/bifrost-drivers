@@ -22,10 +22,10 @@
 #include "mali_kbase_vinstr.h"
 #include "hwcnt/mali_kbase_hwcnt_virtualizer.h"
 #include "hwcnt/mali_kbase_hwcnt_types.h"
-#include <uapi/gpu/arm/midgard/mali_kbase_hwcnt_reader.h>
+#include <uapi/gpu/arm/bv_r40p0/mali_kbase_hwcnt_reader.h>
 #include "hwcnt/mali_kbase_hwcnt_gpu.h"
 #include "hwcnt/mali_kbase_hwcnt_gpu_narrow.h"
-#include <uapi/gpu/arm/midgard/mali_kbase_ioctl.h>
+#include <uapi/gpu/arm/bv_r40p0/mali_kbase_ioctl.h>
 #include "mali_malisw.h"
 #include "mali_kbase_debug.h"
 
