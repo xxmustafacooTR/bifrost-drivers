@@ -324,4 +324,4 @@ config MALI_HW_ERRATA_1485982_USE_CLOCK_ALTERNATIVE
 
 
 source "kernel/drivers/gpu/arm/arbitration/Mconfig"
-source "kernel/drivers/gpu/arm/midgard/tests/Mconfig"
+source "kernel/drivers/gpu/arm/bv_r41p0/tests/Mconfig"
