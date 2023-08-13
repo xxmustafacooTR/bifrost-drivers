@@ -1220,7 +1220,6 @@ struct kbase_device {
 	struct priority_control_manager_device *pcm_dev;
 
 	struct notifier_block oom_notifier_block;
-
 };
 
 /**
