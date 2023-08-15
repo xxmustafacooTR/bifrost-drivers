@@ -31,7 +31,7 @@
 #include <backend/gpu/mali_kbase_pm_internal.h>
 #include <linux/export.h>
 #include <csf/mali_kbase_csf_registers.h>
-#include <uapi/gpu/arm/midgard/mali_base_kernel.h>
+#include <uapi/gpu/arm/bv_r44p1/mali_base_kernel.h>
 #include <mali_kbase_hwaccess_time.h>
 #include "mali_kbase_csf_tiler_heap_reclaim.h"
 #include "mali_kbase_csf_mcu_shared_reg.h"
@@ -3269,7 +3269,7 @@ static int scheduler_group_schedule(struct kbase_queue_group *group)
 				clear_bit((unsigned int)group->csg_nr,
 					  scheduler->csg_slots_idle_mask);
 				/* Request the update to confirm the condition inferred. */
-				group->reevaluate_idle_status = true;
+				scheduler->update_ext_slots = true;
 				KBASE_KTRACE_ADD_CSF_GRP(kbdev, CSG_SLOT_IDLE_CLEAR, group,
 					scheduler->csg_slots_idle_mask[0]);
 			}
@@ -4542,14 +4542,15 @@ static void scheduler_rotate_ctxs(struct kbase_device *kbdev)
  *
  * This function sends a CSG status update request for all the CSG slots
  * present in the bitmap scheduler->csg_slots_idle_mask. Additionally, if
- * the group's 'reevaluate_idle_status' field is set, the nominally non-idle
- * slots are also included in the status update for a confirmation of their
- * status. The function wait for the status update request to complete and
- * returns the update completed slots bitmap and any timed out idle-flagged
- * slots bitmap.
+ * the scheduler's 'update_ext_slots' field is set, the nominally non-idle
+ * slots, except those with protm pending, are also included in the status
+ * update for a confirmation of their status. The function wait for the status
+ * update request to complete and returns the update completed slots bitmap
+ * and any timed out idle-flagged slots bitmap.
  *
  * The bits set in the scheduler->csg_slots_idle_mask bitmap are cleared by
- * this function.
+ * this function. As the 'update_ext_slots' field is once per request, it is
+ * cleared unconditionally after an update operation.
  */
 static void scheduler_update_idle_slots_status(struct kbase_device *kbdev,
 		unsigned long *csg_bitmap, unsigned long *failed_csg_bitmap)
@@ -4580,7 +4581,7 @@ static void scheduler_update_idle_slots_status(struct kbase_device *kbdev,
 		}
 
 		idle_flag = test_bit(i, scheduler->csg_slots_idle_mask);
-		if (idle_flag || group->reevaluate_idle_status) {
+		if (idle_flag || bitmap_empty(group->protm_pending_bitmap, ginfo->stream_num)) {
 			if (idle_flag) {
 #ifdef CONFIG_MALI_DEBUG
 				if (!bitmap_empty(group->protm_pending_bitmap,
@@ -4595,13 +4596,22 @@ static void scheduler_update_idle_slots_status(struct kbase_device *kbdev,
 				KBASE_KTRACE_ADD_CSF_GRP(kbdev, CSG_SLOT_IDLE_CLEAR, group,
 							 scheduler->csg_slots_idle_mask[0]);
 			} else {
-				/* Updates include slots for which reevaluation is needed.
-				 * Here one tracks the extra included slots in active_chk.
-				 * For protm pending slots, their status of activeness are
+				/* If no request, skip updating the non-idle slots. The extra
+				 * update request originates from p-mode execution phase, where
+				 * some user input likely will de-idle an idle-slot, but the
+				 * scheduler would not be able to fully validate it due to
+				 * the p-mode execution constraints. Instead, the scheduler
+				 * sets this extended update flag for status confirmation.
+				 */
+				if (!scheduler->update_ext_slots)
+					continue;
+
+				/* Updates include slots without protm pending. Here one
+				 * tracks the extra included slots in active_chk. For
+				 * protm pending slots, their status of activeness are
 				 * assured so no need to request an update.
 				 */
 				active_chk |= BIT(i);
-				group->reevaluate_idle_status = false;
 			}
 
 			KBASE_KTRACE_ADD_CSF_GRP(kbdev, CSG_UPDATE_IDLE_SLOT_REQ, group, i);
@@ -4617,12 +4627,21 @@ static void scheduler_update_idle_slots_status(struct kbase_device *kbdev,
 			 */
 			set_bit(i, csg_bitmap);
 		} else {
+			/* A protm pending CSG is assured to be non-idle, hence treated
+			 * separately, i.e. no need to perform an update. In interrupt
+			 * context, a previously 'nominal' idle on-slot group is
+			 * de-idled from the protm request. Its idle flag had been
+			 * cleared, mark the correct run_state for the next tick/tock
+			 * cycle here in the scheduler process context.
+			 */
 			group->run_state = KBASE_CSF_GROUP_RUNNABLE;
 			KBASE_KTRACE_ADD_CSF_GRP(kbdev, CSF_GROUP_RUNNABLE, group,
 						group->run_state);
 		}
 	}
 
+	/* Clear update_ext_slots flag, as it's a scope of once per-request */
+	scheduler->update_ext_slots = false;
 
 	/* The groups are aggregated into a single kernel doorbell request */
 	if (!bitmap_empty(csg_bitmap, num_groups)) {
@@ -5907,6 +5926,7 @@ static void scheduler_inner_reset(struct kbase_device *kbdev)
 		KBASE_KTRACE_ADD_CSF_GRP(kbdev, SCHEDULER_PROTM_EXIT, scheduler->active_protm_grp,
 					 0u);
 	scheduler->active_protm_grp = NULL;
+	scheduler->update_ext_slots = false;
 	memset(kbdev->csf.scheduler.csg_slots, 0,
 	       num_groups * sizeof(struct kbase_csf_csg_slot));
 	bitmap_zero(kbdev->csf.scheduler.csg_inuse_bitmap, num_groups);
@@ -6389,7 +6409,7 @@ static bool check_sync_update_for_on_slot_group(
 				/* Request the scheduler to confirm the condition inferred
 				 * here inside the protected mode.
 				 */
-				group->reevaluate_idle_status = true;
+				scheduler->update_ext_slots = true;
 				group->run_state = KBASE_CSF_GROUP_RUNNABLE;
 				KBASE_KTRACE_ADD_CSF_GRP(kbdev, CSF_GROUP_RUNNABLE, group,
 							 group->run_state);
@@ -6604,6 +6624,10 @@ int kbase_csf_scheduler_context_init(struct kbase_context *kctx)
 		goto event_wait_add_failed;
 	}
 
+event_wait_add_failed:
+	destroy_workqueue(kctx->csf.sched.sync_update_wq);
+alloc_wq_failed:
+	kbase_ctx_sched_remove_ctx(kctx);
 	return err;
 
 event_wait_add_failed:
@@ -6778,6 +6802,7 @@ int kbase_csf_scheduler_early_init(struct kbase_device *kbdev)
 	scheduler->top_grp = NULL;
 	scheduler->last_schedule = 0;
 	scheduler->active_protm_grp = NULL;
+	scheduler->update_ext_slots = false;
 	scheduler->csg_scheduling_period_ms = CSF_SCHEDULER_TIME_TICK_MS;
 	scheduler_doorbell_init(kbdev);
 

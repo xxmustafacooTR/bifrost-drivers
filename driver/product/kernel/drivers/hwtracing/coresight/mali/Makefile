@@ -28,7 +28,7 @@ endif
 
 CONFIGS :=
 
-ifeq ($(MALI_KCONFIG_EXT_PREFIX),)
+ifeq (,)
     CONFIG_MALI_CORESIGHT ?= n
     ifeq ($(CONFIG_MALI_CORESIGHT),y)
 
@@ -73,7 +73,7 @@ EXTRA_CFLAGS := $(foreach config,$(CONFIGS), \
 #
 # KBUILD_EXTRA_SYMBOLS to prevent warnings about unknown functions
 #
-EXTRA_SYMBOLS += $(M)/../../../gpu/arm/midgard/Module.symvers
+EXTRA_SYMBOLS += $(M)/../../../gpu/arm/bv_r44p1/Module.symvers
 
 # The following were added to align with W=1 in scripts/Makefile.extrawarn
 # from the Linux source tree
