@@ -22,7 +22,7 @@
 #ifndef _KBASE_MMU_H_
 #define _KBASE_MMU_H_
 
-#include <uapi/gpu/arm/midgard/mali_base_kernel.h>
+#include <uapi/gpu/arm/bv_r44p0/mali_base_kernel.h>
 
 #define KBASE_MMU_PAGE_ENTRIES 512
 #define KBASE_MMU_INVALID_PGD_ADDRESS (~(phys_addr_t)0)
