@@ -43,7 +43,7 @@ kernel_module(
         "//common-modules/mali:__subpackages__",
     ],
     deps = [
-        "//common-modules/mali/drivers/gpu/arm/midgard",
+        "//common-modules/mali/drivers/gpu/arm/bv_r45p0",
     ],
 )
 

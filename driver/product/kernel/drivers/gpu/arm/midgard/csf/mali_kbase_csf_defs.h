@@ -33,7 +33,7 @@
 #include "mali_kbase_csf_firmware.h"
 #include "mali_kbase_refcount_defs.h"
 #include "mali_kbase_csf_event.h"
-#include <uapi/gpu/arm/midgard/csf/mali_kbase_csf_errors_dumpfault.h>
+#include <uapi/gpu/arm/bv_r45p0/csf/mali_kbase_csf_errors_dumpfault.h>
 
 #if IS_ENABLED(CONFIG_MALI_CORESIGHT)
 #include <debug/backend/mali_kbase_debug_coresight_internal_csf.h>
@@ -1061,6 +1061,9 @@ struct kbase_csf_mcu_shared_regions {
  *                          after GPU and L2 cache have been powered up. So when
  *                          this count is zero, MCU will not be powered up.
  * @csg_scheduling_period_ms: Duration of Scheduling tick in milliseconds.
+ * @update_ext_slots:       Flag for indicating whether a tick/tock's idle status
+ *                          update check needs to be extended to cover some extra
+ *                          non-idle marked slots, affecting only one tick/tock.
  * @tick_protm_pending_seq: Scan out sequence number of the group that has
  *                          protected mode execution pending for the queue(s)
  *                          bound to it and will be considered first for the
@@ -1115,6 +1118,7 @@ struct kbase_csf_scheduler {
 	u32 non_idle_scanout_grps;
 	u32 pm_active_count;
 	unsigned int csg_scheduling_period_ms;
+	bool update_ext_slots;
 	u32 tick_protm_pending_seq;
 	ktime_t protm_enter_time;
 	struct kbase_csf_sched_heap_reclaim_mgr reclaim_mgr;

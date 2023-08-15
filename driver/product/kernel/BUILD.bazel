@@ -49,7 +49,7 @@ kernel_module_group(
     name = "modules",
     srcs = [
         "//common-modules/mali/drivers/base/arm:base",
-        "//common-modules/mali/drivers/gpu/arm/midgard",
+        "//common-modules/mali/drivers/gpu/arm/bv_r45p0",
         "//common-modules/mali/drivers/hwtracing/coresight/mali:hwtracing_coresight",
     ],
     visibility = [

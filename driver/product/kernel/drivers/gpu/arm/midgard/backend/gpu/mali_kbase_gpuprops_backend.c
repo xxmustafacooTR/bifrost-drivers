@@ -28,6 +28,8 @@
 #include <backend/gpu/mali_kbase_cache_policy_backend.h>
 #include <mali_kbase_hwaccess_gpuprops.h>
 
+#include <mali_exynos_kbase_entrypoint.h>
+
 int kbase_backend_gpuprops_get(struct kbase_device *kbdev, struct kbase_gpuprops_regdump *regdump)
 {
 	u64 val64;
@@ -97,6 +99,11 @@ int kbase_backend_gpuprops_get(struct kbase_device *kbdev, struct kbase_gpuprops
 
 #endif /* MALI_USE_CSF */
 
+	/* EXYNOS TODO: determine if needed by userspace */
+	mali_exynos_coherency_set_coherency_feature();
+	registers.coherency_features = kbase_reg_read32(kbdev,
+				GPU_CONTROL_ENUM(COHERENCY_FEATURES));
+
 	if (!kbase_is_gpu_removed(kbdev)) {
 		*regdump = registers;
 		return 0;
@@ -134,6 +141,7 @@ int kbase_backend_gpuprops_get_features(struct kbase_device *kbdev,
 	u32 coherency_features;
 	int error = 0;
 
+	mali_exynos_coherency_set_coherency_feature();
 	coherency_features = kbase_cache_get_coherency_features(kbdev);
 
 	if (kbase_is_gpu_removed(kbdev))

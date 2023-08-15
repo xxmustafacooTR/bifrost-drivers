@@ -23,7 +23,7 @@ filegroup(
     srcs = glob([
         "**/*Kconfig",
     ]) + [
-        "//common-modules/mali/drivers/gpu/arm/midgard:midgard_kconfig",
+        "//common-modules/mali/drivers/gpu/arm/bv_r45p0:midgard_kconfig",
         "//common-modules/mali/drivers/xen/arm:xen_kconfig",
         "//common-modules/mali/drivers/gpu/arm/arbitration:arbitration_kconfig",
     ],

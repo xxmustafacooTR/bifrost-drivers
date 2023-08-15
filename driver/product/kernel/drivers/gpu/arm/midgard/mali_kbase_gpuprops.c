@@ -28,11 +28,13 @@
 #include <mali_kbase_gpuprops.h>
 #include <mali_kbase_hwaccess_gpuprops.h>
 #include <mali_kbase_config_defaults.h>
-#include <uapi/gpu/arm/midgard/mali_kbase_ioctl.h>
+#include <uapi/gpu/arm/bv_r45p0/mali_kbase_ioctl.h>
 #include <linux/clk.h>
 #include <backend/gpu/mali_kbase_pm_internal.h>
 #include <linux/of_platform.h>
 #include <linux/moduleparam.h>
+
+#include <mali_exynos_kbase_entrypoint.h>
 
 static void kbase_gpuprops_construct_coherent_groups(struct base_gpu_props *const props)
 {
@@ -495,6 +497,10 @@ int kbase_gpuprops_set_features(struct kbase_device *kbdev)
 		gpu_props->thread_props.tls_alloc = gpu_props->thread_props.max_threads;
 	else
 		gpu_props->thread_props.tls_alloc = gpu_props->raw_props.thread_tls_alloc;
+
+	/* EXYNOS TODO: this is only called once during init. may be there's a better place for this call? */
+	mali_exynos_llc_set_awuser();
+	mali_exynos_llc_set_aruser();
 
 	return err;
 }
