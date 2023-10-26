@@ -916,12 +916,12 @@ static void kbase_reg_zone_exec_va_term(struct kbase_context *kctx)
 	kbase_reg_zone_term(zone);
 }
 
+#if MALI_USE_CSF
 static inline u64 kbase_get_exec_fixed_va_zone_base(struct kbase_context *kctx)
 {
 	return kbase_get_exec_va_zone_base(kctx) + KBASE_REG_ZONE_EXEC_VA_SIZE;
 }
 
-#if MALI_USE_CSF
 static int kbase_reg_zone_exec_fixed_va_init(struct kbase_context *kctx, u64 gpu_va_limit)
 {
 	struct kbase_reg_zone *zone = kbase_ctx_reg_zone_get(kctx, EXEC_FIXED_VA_ZONE);
@@ -1744,10 +1744,19 @@ int kbase_gpu_mmap(struct kbase_context *kctx, struct kbase_va_region *reg,
 			}
 		}
 	} else {
-		err = kbase_mmu_insert_pages_skip_status_update(
-			kctx->kbdev, &kctx->mmu, reg->start_pfn, kbase_get_gpu_phy_pages(reg),
-			kbase_reg_current_backed_size(reg), reg->flags & gwt_mask, kctx->as_nr,
-			group_id, mmu_sync_info, reg);
+		if (reg->gpu_alloc->type == KBASE_MEM_TYPE_IMPORTED_UMM ||
+		    reg->gpu_alloc->type == KBASE_MEM_TYPE_IMPORTED_USER_BUF) {
+			err = kbase_mmu_insert_pages_skip_status_update(
+				kctx->kbdev, &kctx->mmu, reg->start_pfn,
+				kbase_get_gpu_phy_pages(reg), kbase_reg_current_backed_size(reg),
+				reg->flags & gwt_mask, kctx->as_nr, group_id, mmu_sync_info, reg);
+		} else {
+			err = kbase_mmu_insert_pages(kctx->kbdev, &kctx->mmu, reg->start_pfn,
+						     kbase_get_gpu_phy_pages(reg),
+						     kbase_reg_current_backed_size(reg),
+						     reg->flags & gwt_mask, kctx->as_nr, group_id,
+						     mmu_sync_info, reg);
+		}
 
 		if (err)
 			goto bad_insert;
@@ -2475,6 +2484,7 @@ int kbase_alloc_phy_pages_helper(struct kbase_mem_phy_alloc *alloc,
 	 * allocation is visible to the OOM killer
 	 */
 	kbase_process_page_usage_inc(kctx, nr_pages_requested);
+	kbase_trace_gpu_mem_usage_inc(kctx->kbdev, kctx, nr_pages_requested);
 
 	tp = alloc->pages + alloc->nents;
 
@@ -2596,8 +2606,6 @@ no_new_partial:
 
 	alloc->nents += nr_pages_requested;
 
-	kbase_trace_gpu_mem_usage_inc(kctx->kbdev, kctx, nr_pages_requested);
-
 done:
 	return 0;
 
@@ -2607,19 +2615,13 @@ alloc_failed:
 		size_t nr_pages_to_free = nr_pages_requested - nr_left;
 
 		alloc->nents += nr_pages_to_free;
-
-		kbase_process_page_usage_inc(kctx, nr_pages_to_free);
-		atomic_add(nr_pages_to_free, &kctx->used_pages);
-		atomic_add(nr_pages_to_free,
-			&kctx->kbdev->memdev.used_pages);
-
 		kbase_free_phy_pages_helper(alloc, nr_pages_to_free);
 	}
 
-	kbase_process_page_usage_dec(kctx, nr_pages_requested);
-	atomic_sub(nr_pages_requested, &kctx->used_pages);
-	atomic_sub(nr_pages_requested,
-		&kctx->kbdev->memdev.used_pages);
+	kbase_trace_gpu_mem_usage_dec(kctx->kbdev, kctx, nr_left);
+	kbase_process_page_usage_dec(kctx, nr_left);
+	atomic_sub(nr_left, &kctx->used_pages);
+	atomic_sub(nr_left, &kctx->kbdev->memdev.used_pages);
 
 invalid_request:
 	return -ENOMEM;
@@ -2668,6 +2670,7 @@ struct tagged_addr *kbase_alloc_phy_pages_helper_locked(
 	 * allocation is visible to the OOM killer
 	 */
 	kbase_process_page_usage_inc(kctx, nr_pages_requested);
+	kbase_trace_gpu_mem_usage_inc(kctx->kbdev, kctx, nr_pages_requested);
 
 	tp = alloc->pages + alloc->nents;
 	new_pages = tp;
@@ -2770,8 +2773,6 @@ struct tagged_addr *kbase_alloc_phy_pages_helper_locked(
 
 	alloc->nents += nr_pages_requested;
 
-	kbase_trace_gpu_mem_usage_inc(kctx->kbdev, kctx, nr_pages_requested);
-
 done:
 	return new_pages;
 
@@ -2808,6 +2809,7 @@ alloc_failed:
 		}
 	}
 
+	kbase_trace_gpu_mem_usage_dec(kctx->kbdev, kctx, nr_pages_requested);
 	kbase_process_page_usage_dec(kctx, nr_pages_requested);
 	atomic_sub(nr_pages_requested, &kctx->used_pages);
 	atomic_sub(nr_pages_requested, &kctx->kbdev->memdev.used_pages);

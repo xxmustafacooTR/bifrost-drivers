@@ -35,9 +35,6 @@ bob_defaults {
             "CONFIG_GPU_HWVER={{.hwver}}",
         ],
     },
-    mali_platform_dt_pin_rst: {
-        kbuild_options: ["CONFIG_MALI_PLATFORM_DT_PIN_RST=y"],
-    },
     gpu_has_csf: {
         kbuild_options: ["CONFIG_MALI_CSF_SUPPORT=y"],
     },
@@ -104,9 +101,6 @@ bob_defaults {
     mali_system_trace: {
         kbuild_options: ["CONFIG_MALI_SYSTEM_TRACE=y"],
     },
-    buslog: {
-        kbuild_options: ["CONFIG_MALI_BUSLOG=y"],
-    },
     cinstr_vector_dump: {
         kbuild_options: ["CONFIG_MALI_VECTOR_DUMP=y"],
     },
@@ -151,6 +145,9 @@ bob_defaults {
     },
     mali_fw_trace_mode_auto_discard: {
         kbuild_options: ["CONFIG_MALI_FW_TRACE_MODE_AUTO_DISCARD=y"],
+    },
+    mali_trace_power_gpu_work_period: {
+        kbuild_options: ["CONFIG_MALI_TRACE_POWER_GPU_WORK_PERIOD=y"],
     },
     kbuild_options: [
         "CONFIG_MALI_PLATFORM_NAME={{.mali_platform_name}}",
@@ -284,9 +281,4 @@ bob_kernel_module {
         "CONFIG_MALI_MIDGARD=m",
         "CONFIG_MALI_KUTF=n",
     ],
-    buslog: {
-        extra_symbols: [
-            "bus_logger",
-        ],
-    },
 }

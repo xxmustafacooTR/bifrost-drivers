@@ -48,7 +48,7 @@
  */
 #define KBASEP_TICK_PROTM_PEND_SCAN_SEQ_NR_INVALID (U32_MAX)
 
-#define FIRMWARE_IDLE_HYSTERESIS_TIME_USEC (10000) /* Default 10 milliseconds */
+#define FIRMWARE_IDLE_HYSTERESIS_TIME_NS (10 * 1000 * 1000) /* Default 10 milliseconds */
 
 /* Idle hysteresis time can be scaled down when GPU sleep feature is used */
 #define FIRMWARE_IDLE_HYSTERESIS_GPU_SLEEP_SCALER (5)
@@ -74,6 +74,18 @@ int kbase_csf_ctx_init(struct kbase_context *kctx);
  */
 void kbase_csf_ctx_handle_fault(struct kbase_context *kctx,
 		struct kbase_fault *fault);
+
+/**
+ * kbase_csf_ctx_report_page_fault_for_active_groups - Notify Userspace about GPU page fault
+ *                                                   for active groups of the faulty context.
+ *
+ * @kctx:       Pointer to faulty kbase context.
+ * @fault:      Pointer to the fault.
+ *
+ * This function notifies the event notification thread of the GPU page fault.
+ */
+void kbase_csf_ctx_report_page_fault_for_active_groups(struct kbase_context *kctx,
+						       struct kbase_fault *fault);
 
 /**
  * kbase_csf_ctx_term - Terminate the CSF interface for a GPU address space.
@@ -311,6 +323,19 @@ void kbase_csf_add_group_fatal_error(
  * @val:   The value of JOB IRQ status register which triggered the interrupt
  */
 void kbase_csf_interrupt(struct kbase_device *kbdev, u32 val);
+
+/**
+ * kbase_csf_handle_csg_sync_update - Handle SYNC_UPDATE notification for the group.
+ *
+ * @kbdev: The kbase device to handle the SYNC_UPDATE interrupt.
+ * @ginfo: Pointer to the CSG interface used by the @group
+ * @group: Pointer to the GPU command queue group.
+ * @req:   CSG_REQ register value corresponding to @group.
+ * @ack:   CSG_ACK register value corresponding to @group.
+ */
+void kbase_csf_handle_csg_sync_update(struct kbase_device *const kbdev,
+				      struct kbase_csf_cmd_stream_group_info *ginfo,
+				      struct kbase_queue_group *group, u32 req, u32 ack);
 
 /**
  * kbase_csf_doorbell_mapping_init - Initialize the fields that facilitates
