@@ -77,19 +77,19 @@ typedef unsigned int __poll_t;
 /* Replace the default definition with CONFIG_LSM_MMAP_MIN_ADDR */
 #undef kbase_mmap_min_addr
 #define kbase_mmap_min_addr CONFIG_LSM_MMAP_MIN_ADDR
-#define KBASE_COMPILED_MMAP_MIN_ADDR_MSG                                                           \
+#define KBASE_COMPILED_MMAP_MIN_ADDR_MSG \
 	"* MALI kbase_mmap_min_addr compiled to CONFIG_LSM_MMAP_MIN_ADDR, no runtime update possible! *"
 #endif /* (CONFIG_LSM_MMAP_MIN_ADDR > CONFIG_DEFAULT_MMAP_MIN_ADDR) */
 #endif /* CONFIG_LSM_MMAP_MIN_ADDR */
 
 #if (kbase_mmap_min_addr == CONFIG_DEFAULT_MMAP_MIN_ADDR)
-#define KBASE_COMPILED_MMAP_MIN_ADDR_MSG                                                           \
+#define KBASE_COMPILED_MMAP_MIN_ADDR_MSG \
 	"* MALI kbase_mmap_min_addr compiled to CONFIG_DEFAULT_MMAP_MIN_ADDR, no runtime update possible! *"
 #endif
 
 #else /* CONFIG_MMU */
 #define kbase_mmap_min_addr (0UL)
-#define KBASE_COMPILED_MMAP_MIN_ADDR_MSG                                                           \
+#define KBASE_COMPILED_MMAP_MIN_ADDR_MSG \
 	"* MALI kbase_mmap_min_addr compiled to (0UL), no runtime update possible! *"
 #endif /* CONFIG_MMU */
 #endif /* KERNEL_VERSION(6, 1, 0) <= LINUX_VERSION_CODE */
@@ -116,6 +116,10 @@ static inline void kbase_timer_setup(struct timer_list *timer,
 #define READ_ONCE(x) ACCESS_ONCE(x)
 #endif
 
+#ifndef CSTD_UNUSED
+#define CSTD_UNUSED(x) ((void)(x))
+#endif
+
 static inline void *kbase_kmap(struct page *p)
 {
 #if KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE
@@ -137,8 +141,10 @@ static inline void *kbase_kmap_atomic(struct page *p)
 static inline void kbase_kunmap(struct page *p, void *address)
 {
 #if KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE
+	CSTD_UNUSED(p);
 	kunmap_local(address);
 #else
+	CSTD_UNUSED(address);
 	kunmap(p);
 #endif /* KERNEL_VERSION(5, 11, 0) */
 }
@@ -164,6 +170,7 @@ static inline void kbase_kunmap_atomic(void *address)
  * are simple to reproduce.
  */
 #define check_mul_overflow(a, b, d) __builtin_mul_overflow(a, b, d)
+#define check_add_overflow(a, b, d) __builtin_add_overflow(a, b, d)
 #endif
 
 /*
@@ -205,16 +212,16 @@ static inline void kbase_kunmap_atomic(void *address)
 
 static inline void dma_fence_set_error_helper(
 #if (KERNEL_VERSION(4, 10, 0) > LINUX_VERSION_CODE)
-					      struct fence *fence,
+	struct fence *fence,
 #else
-					      struct dma_fence *fence,
+	struct dma_fence *fence,
 #endif
-					      int error)
+	int error)
 {
 #if (KERNEL_VERSION(4, 11, 0) <= LINUX_VERSION_CODE)
 	dma_fence_set_error(fence, error);
 #elif (KERNEL_VERSION(4, 10, 0) > LINUX_VERSION_CODE && \
-		KERNEL_VERSION(4, 9, 68) <= LINUX_VERSION_CODE)
+       KERNEL_VERSION(4, 9, 68) <= LINUX_VERSION_CODE)
 	fence_set_error(fence, error);
 #else
 	fence->status = error;

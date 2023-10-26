@@ -37,10 +37,10 @@ ifeq ($(MALI_KCONFIG_EXT_PREFIX),)
     CONFIG_MALI_MIDGARD ?= m
     ifeq ($(CONFIG_MALI_MIDGARD),m)
         CONFIG_MALI_PLATFORM_NAME ?= "devicetree"
-        CONFIG_MALI_TRACE_POWER_GPU_WORK_PERIOD ?= y
         CONFIG_MALI_GATOR_SUPPORT ?= y
         CONFIG_MALI_ARBITRATION ?= n
         CONFIG_MALI_PARTITION_MANAGER ?= n
+        CONFIG_MALI_64BIT_HW_ACCESS ?= n
 
         ifneq ($(CONFIG_MALI_NO_MALI),y)
             # Prevent misuse when CONFIG_MALI_NO_MALI=y
@@ -62,6 +62,12 @@ ifeq ($(MALI_KCONFIG_EXT_PREFIX),)
 
         ifeq ($(CONFIG_MALI_CSF_SUPPORT), y)
             CONFIG_MALI_CORESIGHT ?= n
+        endif
+
+        ifeq ($(CONFIG_SYNC_FILE), y)
+            CONFIG_MALI_FENCE_TIMEOUT_RECOVERY ?= y
+        else
+            CONFIG_MALI_FENCE_TIMEOUT_RECOVERY = n
         endif
 
         #
@@ -154,7 +160,7 @@ ifeq ($(MALI_KCONFIG_EXT_PREFIX),)
     endif
 
     # All Mali CONFIG should be listed here
-    CONFIGS := \
+    CONFIGS += \
         CONFIG_MALI_MIDGARD \
         CONFIG_MALI_CSF_SUPPORT \
         CONFIG_MALI_GATOR_SUPPORT \
@@ -185,13 +191,13 @@ ifeq ($(MALI_KCONFIG_EXT_PREFIX),)
         CONFIG_MALI_MIDGARD_ENABLE_TRACE \
         CONFIG_MALI_SYSTEM_TRACE \
         CONFIG_MALI_FENCE_DEBUG \
+        CONFIG_MALI_FENCE_TIMEOUT_RECOVERY \
         CONFIG_MALI_KUTF \
         CONFIG_MALI_KUTF_IRQ_TEST \
         CONFIG_MALI_KUTF_CLK_RATE_TRACE \
         CONFIG_MALI_KUTF_MGM_INTEGRATION_TEST \
         CONFIG_MALI_XEN \
-        CONFIG_MALI_CORESIGHT \
-        CONFIG_MALI_TRACE_POWER_GPU_WORK_PERIOD
+        CONFIG_MALI_CORESIGHT
 
 
 endif
