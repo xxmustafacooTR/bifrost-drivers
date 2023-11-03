@@ -45,7 +45,7 @@
 #include <linux/workqueue.h>
 #include <linux/interrupt.h>
 
-#include <uapi/gpu/arm/midgard/mali_base_kernel.h>
+#include <uapi/gpu/arm/bv_r46p0/mali_base_kernel.h>
 #include <mali_kbase_linux.h>
 #include <linux/version_compat_defs.h>
 
@@ -63,7 +63,7 @@
 #include "mali_kbase_gpu_memory_debugfs.h"
 #include "mali_kbase_mem_profile_debugfs.h"
 #include "mali_kbase_gpuprops.h"
-#include <uapi/gpu/arm/midgard/mali_kbase_ioctl.h>
+#include <uapi/gpu/arm/bv_r46p0/mali_kbase_ioctl.h>
 #if !MALI_USE_CSF
 #include "mali_kbase_debug_job_fault.h"
 #include "mali_kbase_jd_debugfs.h"
