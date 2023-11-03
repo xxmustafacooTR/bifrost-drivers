@@ -31,7 +31,7 @@ endif
 
 CONFIGS :=
 
-ifeq ($(MALI_KCONFIG_EXT_PREFIX),)
+ifeq (,)
     #
     # Default configuration values
     #

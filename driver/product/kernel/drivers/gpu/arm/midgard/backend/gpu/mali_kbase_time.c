@@ -310,7 +310,7 @@ u64 kbase_arch_timer_get_cntfrq(struct kbase_device *kbdev)
 	u64 freq = arch_timer_get_cntfrq();
 
 #if !IS_ENABLED(CONFIG_MALI_REAL_HW)
-	freq = midgard_model_arch_timer_get_cntfrq(kbdev->model);
+	freq = bv_r47p0_model_arch_timer_get_cntfrq(kbdev->model);
 #endif
 
 	dev_dbg(kbdev->dev, "System Timer Freq = %lluHz", freq);
