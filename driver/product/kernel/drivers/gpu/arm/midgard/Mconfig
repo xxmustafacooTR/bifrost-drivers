@@ -158,17 +158,6 @@ config MALI_CORESIGHT
 	bool "Enable Kbase CoreSight tracing support"
 	default n
 
-config MALI_FENCE_TIMEOUT_RECOVERY
-	bool "Enable fence timeout recovery"
-	depends on MALI_MIDGARD
-	default y
-	help
-	  Choose this option to enable fence timeout recovery.
-	  Without this feature, it is possible for a graphic application
-	  to block the surfaceflinger indefinitely,
-	  if the latter is waiting for a fence to be signalled from the former.
-	  This behaviour would trigger the system SWT and causing a platform reboot.
-
 menuconfig MALI_EXPERT
 	depends on MALI_MIDGARD
 	bool "Enable Expert Settings"
@@ -211,6 +200,21 @@ config PAGE_MIGRATION_SUPPORT
 	  be enabled at all. If set to enabled, then page migration
 	  support is explicitly compiled in. This has no effect when
 	  PAGE_MIGRATION_OVERRIDE is disabled.
+
+config LARGE_PAGE_SUPPORT
+	bool "Support for 2MB page allocations"
+	depends on BACKEND_KERNEL
+	default y
+	help
+	  Rather than allocating all GPU memory page-by-page, allow the system
+	  to decide whether to attempt to allocate 2MB pages from the kernel.
+	  This reduces TLB pressure and helps to prevent memory fragmentation.
+
+	  Note that this option only enables the support for the module parameter
+	  and does not necessarily mean that 2MB pages will be used automatically.
+	  This depends on GPU support.
+
+	  If in doubt, say Y.
 
 choice
 	prompt "Error injection level"
@@ -358,6 +362,14 @@ config MALI_HW_ERRATA_1485982_USE_CLOCK_ALTERNATIVE
 	  tree using the property, opp-mali-errata-1485982. Otherwise the
 	  slowest clock will be selected.
 
+config MALI_TRACE_POWER_GPU_WORK_PERIOD
+	bool "Enable per-application GPU metrics tracepoints"
+	depends on MALI_MIDGARD
+	default y
+	help
+	  This option enables per-application GPU metrics tracepoints.
+
+	  If unsure, say N.
 
 choice
 	prompt "CSF Firmware trace mode"

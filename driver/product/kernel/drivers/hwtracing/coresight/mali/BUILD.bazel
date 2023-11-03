@@ -23,6 +23,17 @@ load(
     "kernel_module",
 )
 
+filegroup(
+    name = "hwtracing_coresight_kconfig",
+    srcs = glob([
+        "**/*Kconfig",
+    ]),
+    visibility = [
+        "//common:__pkg__",
+        "//common-modules/mali:__subpackages__",
+    ],
+)
+
 _hwtracing_coresight_modules = []
 
 kernel_module(
@@ -30,6 +41,7 @@ kernel_module(
     srcs = glob([
         "**/*.c",
         "**/*.h",
+        "**/*.S",
         "**/*Kbuild",
         "**/*Makefile",
     ]) + [
@@ -43,17 +55,7 @@ kernel_module(
         "//common-modules/mali:__subpackages__",
     ],
     deps = [
-        "//common-modules/mali/drivers/gpu/arm/midgard",
-    ],
-)
-
-filegroup(
-    name = "hwtracing_coresight_kconfig",
-    srcs = glob([
-        "**/*Kconfig",
-    ]),
-    visibility = [
-        "//common:__pkg__",
-        "//common-modules/mali:__subpackages__",
+        "//common-modules/mali/drivers/base/arm:base",
+        "//common-modules/mali/drivers/gpu/arm:gpu",
     ],
 )

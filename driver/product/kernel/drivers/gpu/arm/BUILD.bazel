@@ -18,17 +18,43 @@
 #
 #
 
+load(
+    "//build/kernel/kleaf:kernel.bzl",
+    "kernel_module",
+)
+
 filegroup(
     name = "gpu_kconfig",
     srcs = glob([
         "**/*Kconfig",
-    ]) + [
-        "//common-modules/mali/drivers/gpu/arm/midgard:midgard_kconfig",
-        "//common-modules/mali/drivers/xen/arm:xen_kconfig",
-        "//common-modules/mali/drivers/gpu/arm/arbitration:arbitration_kconfig",
-    ],
+    ]),
     visibility = [
         "//common:__pkg__",
         "//common-modules/mali:__subpackages__",
+    ],
+)
+
+_gpu_modules = []
+
+kernel_module(
+    name = "gpu",
+    srcs = glob([
+        "**/*.c",
+        "**/*.h",
+        "**/*.S",
+        "**/*Kbuild",
+        "**/*Makefile",
+    ]) + [
+        "//common:kernel_headers",
+        "//common-modules/mali:headers",
+    ],
+    outs = _gpu_modules,
+    kernel_build = "//common:kernel_aarch64",
+    visibility = [
+        "//common:__pkg__",
+        "//common-modules/mali:__subpackages__",
+    ],
+    deps = [
+        "//common-modules/mali/drivers/base/arm:base",
     ],
 )

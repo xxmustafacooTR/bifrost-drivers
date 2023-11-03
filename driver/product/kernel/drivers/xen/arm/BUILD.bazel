@@ -18,15 +18,9 @@
 #
 #
 
-filegroup(
-    name = "xen",
-    srcs = glob([
-        "**/*.c",
-        "**/*.h",
-        "**/*Kbuild",
-        "**/*Makefile",
-    ]),
-    visibility = ["//common-modules/mali:__subpackages__"],
+load(
+    "//build/kernel/kleaf:kernel.bzl",
+    "kernel_module",
 )
 
 filegroup(
@@ -34,6 +28,28 @@ filegroup(
     srcs = glob([
         "**/*Kconfig",
     ]),
+    visibility = [
+        "//common:__pkg__",
+        "//common-modules/mali:__subpackages__",
+    ],
+)
+
+_xen_modules = []
+
+kernel_module(
+    name = "xen",
+    srcs = glob([
+        "**/*.c",
+        "**/*.h",
+        "**/*.S",
+        "**/*Kbuild",
+        "**/*Makefile",
+    ]) + [
+        "//common:kernel_headers",
+        "//common-modules/mali:headers",
+    ],
+    outs = _xen_modules,
+    kernel_build = "//common:kernel_aarch64",
     visibility = [
         "//common:__pkg__",
         "//common-modules/mali:__subpackages__",

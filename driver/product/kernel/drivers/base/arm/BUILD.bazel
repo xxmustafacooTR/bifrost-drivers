@@ -23,6 +23,17 @@ load(
     "kernel_module",
 )
 
+filegroup(
+    name = "base_kconfig",
+    srcs = glob([
+        "**/*Kconfig",
+    ]),
+    visibility = [
+        "//common:__pkg__",
+        "//common-modules/mali:__subpackages__",
+    ],
+)
+
 _base_modules = []
 
 kernel_module(
@@ -30,6 +41,7 @@ kernel_module(
     srcs = glob([
         "**/*.c",
         "**/*.h",
+        "**/*.S",
         "**/*Kbuild",
         "**/*Makefile",
     ]) + [
@@ -38,17 +50,6 @@ kernel_module(
     ],
     outs = _base_modules,
     kernel_build = "//common:kernel_aarch64",
-    visibility = [
-        "//common:__pkg__",
-        "//common-modules/mali:__subpackages__",
-    ],
-)
-
-filegroup(
-    name = "base_kconfig",
-    srcs = glob([
-        "**/*Kconfig",
-    ]),
     visibility = [
         "//common:__pkg__",
         "//common-modules/mali:__subpackages__",

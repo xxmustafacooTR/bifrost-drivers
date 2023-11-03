@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
 #
-# (C) COPYRIGHT 2023 ARM Limited. All rights reserved.
+# (C) COPYRIGHT 2022 ARM Limited. All rights reserved.
 #
 # This program is free software and is provided to you under the terms of the
 # GNU General Public License version 2 as published by the Free Software
@@ -18,26 +18,10 @@
 #
 #
 
-filegroup(
-    name = "arbitration",
-    srcs = glob([
-        "**/*.c",
-        "**/*.h",
-        "**/*Kbuild",
-        "**/*Makefile",
-    ]),
-    visibility = ["//common-modules/mali:__subpackages__"],
-)
-
-filegroup(
-    name = "arbitration_kconfig",
-    srcs = glob([
-        "**/*Kconfig",
-    ]) + [
-        "//common-modules/mali/drivers/xen/arm:xen_kconfig",
-    ],
-    visibility = [
-        "//common:__pkg__",
-        "//common-modules/mali:__subpackages__",
-    ],
-)
+config MALI_XEN
+	bool "Enable Xen Interface reference code"
+	depends on MALI_ARBITER_SUPPORT
+	help
+	  Enables the build of xen interface modules used in the reference
+	  virtualization setup for Mali
+	  If unsure, say N.

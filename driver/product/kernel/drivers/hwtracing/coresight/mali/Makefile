@@ -73,7 +73,14 @@ EXTRA_CFLAGS := $(foreach config,$(CONFIGS), \
 #
 # KBUILD_EXTRA_SYMBOLS to prevent warnings about unknown functions
 #
-EXTRA_SYMBOLS += $(M)/../../../gpu/arm/midgard/Module.symvers
+GPU_SYMBOLS = $(M)/../../../gpu/arm/Module.symvers
+ifeq ($(MALI_KCONFIG_EXT_PREFIX),)
+    GPU_SYMBOLS = $(M)/../../../gpu/arm/midgard/Module.symvers
+endif
+
+EXTRA_SYMBOLS += \
+    $(M)/../../../base/arm/Module.symvers \
+    $(GPU_SYMBOLS)
 
 # The following were added to align with W=1 in scripts/Makefile.extrawarn
 # from the Linux source tree
