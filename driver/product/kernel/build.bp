@@ -51,7 +51,7 @@ bob_defaults {
     },
     install_group: "IG_kernel_modules",
     add_to_alias: ["kernel"],
-    owner: "{{.android_module_owner}}",
+    tags: ["owner:{{.android_module_owner}}"],
     // These flags should be synchronised with that defined in
     // kernel/drivers/base/arm/Makefile and
     // kernel/drivers/gpu/arm/midgard/Makefile
