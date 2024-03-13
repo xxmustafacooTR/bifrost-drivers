@@ -27,8 +27,13 @@
 #ifndef _KBASE_GPU_MEMORY_DEBUGFS_H
 #define _KBASE_GPU_MEMORY_DEBUGFS_H
 
-#include <linux/compiler_types.h>
 #include <linux/types.h>
+
+#if KERNEL_VERSION(4, 14, 0) < LINUX_VERSION_CODE
+#include <linux/compiler_types.h>
+#else
+#include <linux/compiler.h>
+#endif
 
 struct kbase_io_history;
 struct kbase_device;
