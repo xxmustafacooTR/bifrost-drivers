@@ -28,7 +28,7 @@ endif
 
 CONFIGS :=
 
-ifeq ($(MALI_KCONFIG_EXT_PREFIX),)
+ifeq (,)
     CONFIG_MALI_CORESIGHT ?= n
     ifeq ($(CONFIG_MALI_CORESIGHT),y)
 
@@ -75,7 +75,7 @@ EXTRA_CFLAGS := $(foreach config,$(CONFIGS), \
 #
 GPU_SYMBOLS = $(M)/../../../gpu/arm/Module.symvers
 ifeq ($(MALI_KCONFIG_EXT_PREFIX),)
-    GPU_SYMBOLS = $(M)/../../../gpu/arm/midgard/Module.symvers
+    GPU_SYMBOLS = $(M)/../../../gpu/arm/bv_r48p0/Module.symvers
 endif
 
 EXTRA_SYMBOLS += \

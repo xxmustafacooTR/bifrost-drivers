@@ -23,7 +23,7 @@
  * DOC: Interface file for accessing MMU hardware functionality
  *
  * This module provides an abstraction for accessing the functionality provided
- * by the midgard MMU and thus allows all MMU HW access to be contained within
+ * by the bv_r48p0 MMU and thus allows all MMU HW access to be contained within
  * one common place and allows for different backends (implementations) to
  * be provided.
  */

@@ -82,7 +82,7 @@ int kbase_platform_register(void)
 	int err;
 
 	config =
-		kbase_get_platform_config(); /* declared in midgard/mali_kbase_config.h but defined in platform folder */
+		kbase_get_platform_config(); /* declared in bv_r48p0/mali_kbase_config.h but defined in platform folder */
 	if (config == NULL) {
 		pr_err("%s: couldn't get platform config\n", __func__);
 		return -ENODEV;

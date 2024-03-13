@@ -19,5 +19,5 @@
 #
 
 menu "ARM GPU Configuration"
-source "$(MALI_KCONFIG_EXT_PREFIX)drivers/gpu/arm/midgard/Kconfig"
+source "drivers/gpu/arm/bv_r48p0/Kconfig"
 endmenu

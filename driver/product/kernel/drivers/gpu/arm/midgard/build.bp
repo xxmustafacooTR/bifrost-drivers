@@ -41,13 +41,13 @@ bob_defaults {
     mali_devfreq: {
         kbuild_options: ["CONFIG_MALI_DEVFREQ=y"],
     },
-    mali_midgard_dvfs: {
+    mali_bv_r48p0_dvfs: {
         kbuild_options: ["CONFIG_MALI_MIDGARD_DVFS=y"],
     },
     mali_gator_support: {
         kbuild_options: ["CONFIG_MALI_GATOR_SUPPORT=y"],
     },
-    mali_midgard_enable_trace: {
+    mali_bv_r48p0_enable_trace: {
         kbuild_options: ["CONFIG_MALI_MIDGARD_ENABLE_TRACE=y"],
     },
     mali_arbiter_support: {

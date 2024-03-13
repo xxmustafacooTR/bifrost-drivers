@@ -20,4 +20,4 @@
 
 THIS_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
-include $(THIS_DIR)midgard/Makefile
+include $(THIS_DIR)bv_r48p0/Makefile

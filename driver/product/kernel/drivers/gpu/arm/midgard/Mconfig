@@ -353,4 +353,4 @@ config MALI_FW_TRACE_MODE_AUTO_DISCARD
 endchoice
 
 source "kernel/drivers/gpu/arm/arbitration/Mconfig"
-source "kernel/drivers/gpu/arm/midgard/tests/Mconfig"
+source "kernel/drivers/gpu/arm/bv_r48p0/tests/Mconfig"

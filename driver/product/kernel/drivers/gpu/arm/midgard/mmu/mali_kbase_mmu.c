@@ -42,7 +42,7 @@
 #include <mmu/mali_kbase_mmu_internal.h>
 #include <mali_kbase_cs_experimental.h>
 #include <device/mali_kbase_device.h>
-#include <uapi/gpu/arm/midgard/gpu/mali_kbase_gpu_id.h>
+#include <uapi/gpu/arm/bv_r48p0/gpu/mali_kbase_gpu_id.h>
 #if !MALI_USE_CSF
 #include <mali_kbase_hwaccess_jm.h>
 #endif
@@ -266,7 +266,11 @@ static void kbase_mmu_sync_pgd_cpu(struct kbase_device *kbdev, dma_addr_t handle
 	/* In non-coherent system, ensure the GPU can read
 	 * the pages from memory
 	 */
+#if IS_ENABLED(CONFIG_MALI_EXYNOS_LLC)
+	if (kbdev->system_coherency != COHERENCY_ACE)
+#else
 	if (kbdev->system_coherency == COHERENCY_NONE)
+#endif
 		dma_sync_single_for_device(kbdev->dev, handle, size, DMA_TO_DEVICE);
 }
 

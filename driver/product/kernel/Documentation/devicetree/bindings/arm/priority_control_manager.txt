@@ -33,7 +33,7 @@ An example node:
 It must be referenced by the GPU as well, see priority-control-manager:
 
 	gpu: gpu@0x6e000000 {
-		compatible = "arm,mali-midgard";
+		compatible = "arm,mali-bv_r48p0";
 		reg = <0x0 0x6e000000 0x0 0x200000>;
 		interrupts = <0 168 4>, <0 168 4>, <0 168 4>;
 		interrupt-names = "JOB", "MMU", "GPU";

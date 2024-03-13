@@ -158,7 +158,7 @@ KBASE_EXPORT_TEST_API(kbase_set_custom_irq_handler);
 
 int kbase_gpu_device_create(struct kbase_device *kbdev)
 {
-	kbdev->model = midgard_model_create(kbdev);
+	kbdev->model = bv_r48p0_model_create(kbdev);
 	if (kbdev->model == NULL)
 		return -ENOMEM;
 
@@ -174,5 +174,5 @@ int kbase_gpu_device_create(struct kbase_device *kbdev)
  */
 void kbase_gpu_device_destroy(struct kbase_device *kbdev)
 {
-	midgard_model_destroy(kbdev->model);
+	bv_r48p0_model_destroy(kbdev->model);
 }

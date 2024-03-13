@@ -41,12 +41,14 @@
 #include <mali_kbase.h>
 #include <mali_kbase_mem_linux.h>
 #include <tl/mali_kbase_tracepoints.h>
-#include <uapi/gpu/arm/midgard/mali_kbase_ioctl.h>
+#include <uapi/gpu/arm/bv_r48p0/mali_kbase_ioctl.h>
 #include <mmu/mali_kbase_mmu.h>
 #include <mali_kbase_caps.h>
 #include <mali_kbase_trace_gpu_mem.h>
 #include <mali_kbase_reset_gpu.h>
 #include <linux/version_compat_defs.h>
+
+#include <mali_exynos_kbase_entrypoint.h>
 
 #if ((KERNEL_VERSION(5, 3, 0) <= LINUX_VERSION_CODE) || \
      (KERNEL_VERSION(5, 0, 0) > LINUX_VERSION_CODE))
@@ -1176,6 +1178,9 @@ int kbase_mem_do_sync_imported(struct kbase_context *kctx, struct kbase_va_regio
 		return ret;
 
 	dma_buf = reg->gpu_alloc->imported.umm.dma_buf;
+
+	if (!mali_exynos_dmabuf_is_cached(dma_buf))
+		return 0;
 
 	switch (sync_fn) {
 	case KBASE_SYNC_TO_DEVICE:

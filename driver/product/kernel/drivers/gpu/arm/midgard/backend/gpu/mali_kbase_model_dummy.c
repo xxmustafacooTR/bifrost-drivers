@@ -58,7 +58,7 @@ static u32 sysc_alloc_regs[SYSC_ALLOC_COUNT];
 
 /* Construct a value for the THREAD_FEATURES register, *except* the two most
  * significant bits, which are set to THREAD_FEATURES_IMPLEMENTATION_TECHNOLOGY_SOFTWARE in
- * midgard_model_read_reg().
+ * bv_r48p0_model_read_reg().
  */
 #if MALI_USE_CSF
 #define THREAD_FEATURES_PARTIAL(MAX_REGISTERS, MAX_TASK_QUEUE, MAX_TG_SPLIT) \
@@ -689,7 +689,7 @@ static void gpu_model_raise_irq(void *model, u32 irq)
 }
 
 #if !MALI_USE_CSF
-static void midgard_model_dump_prfcnt(void)
+static void bv_r48p0_model_dump_prfcnt(void)
 {
 	unsigned long flags;
 
@@ -1056,7 +1056,7 @@ static const struct control_reg_values_t *find_control_reg_values(const char *gp
 	return ret;
 }
 
-void *midgard_model_create(struct kbase_device *kbdev)
+void *bv_r48p0_model_create(struct kbase_device *kbdev)
 {
 	struct dummy_model_t *dummy = NULL;
 
@@ -1084,12 +1084,12 @@ void *midgard_model_create(struct kbase_device *kbdev)
 	return dummy;
 }
 
-void midgard_model_destroy(void *h)
+void bv_r48p0_model_destroy(void *h)
 {
 	kfree((void *)h);
 }
 
-static void midgard_model_get_outputs(void *h)
+static void bv_r48p0_model_get_outputs(void *h)
 {
 	struct dummy_model_t *dummy = (struct dummy_model_t *)h;
 
@@ -1113,7 +1113,7 @@ static void midgard_model_get_outputs(void *h)
 		gpu_model_raise_irq(dummy, MODEL_LINUX_MMU_IRQ);
 }
 
-static void midgard_model_update(void *h)
+static void bv_r48p0_model_update(void *h)
 {
 	struct dummy_model_t *dummy = (struct dummy_model_t *)h;
 	u32 i;
@@ -1141,6 +1141,7 @@ static void midgard_model_update(void *h)
 
 		/*this job is done assert IRQ lines */
 		signal_int(dummy, i);
+
 		update_register_statuses(dummy, i);
 		/*if this job slot returned failures we cannot use it */
 		if (hw_error_status.job_irq_rawstat & (1u << (i + 16))) {
@@ -1174,7 +1175,7 @@ static void invalidate_active_jobs(struct dummy_model_t *dummy)
 	}
 }
 
-void midgard_model_write_reg(void *h, u32 addr, u32 value)
+void bv_r48p0_model_write_reg(void *h, u32 addr, u32 value)
 {
 	unsigned long flags;
 	struct dummy_model_t *dummy = (struct dummy_model_t *)h;
@@ -1323,7 +1324,7 @@ void midgard_model_write_reg(void *h, u32 addr, u32 value)
 #endif /* MALI_USE_CSF */
 #if !MALI_USE_CSF
 		case GPU_COMMAND_PRFCNT_SAMPLE:
-			midgard_model_dump_prfcnt();
+			bv_r48p0_model_dump_prfcnt();
 			dummy->prfcnt_sample_completed = 1;
 #endif /* !MALI_USE_CSF */
 		default:
@@ -1552,12 +1553,12 @@ void midgard_model_write_reg(void *h, u32 addr, u32 value)
 		}
 	}
 
-	midgard_model_update(dummy);
-	midgard_model_get_outputs(dummy);
+	bv_r48p0_model_update(dummy);
+	bv_r48p0_model_get_outputs(dummy);
 	spin_unlock_irqrestore(&hw_error_status.access_lock, flags);
 }
 
-void midgard_model_read_reg(void *h, u32 addr, u32 *const value)
+void bv_r48p0_model_read_reg(void *h, u32 addr, u32 *const value)
 {
 	unsigned long flags;
 	struct dummy_model_t *dummy = (struct dummy_model_t *)h;
@@ -2126,8 +2127,8 @@ int gpu_model_control(void *model, struct kbase_model_control_params *params)
 	}
 
 	spin_lock_irqsave(&hw_error_status.access_lock, flags);
-	midgard_model_update(dummy);
-	midgard_model_get_outputs(dummy);
+	bv_r48p0_model_update(dummy);
+	bv_r48p0_model_get_outputs(dummy);
 	spin_unlock_irqrestore(&hw_error_status.access_lock, flags);
 
 	return 0;

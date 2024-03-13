@@ -84,9 +84,6 @@ int kbase_ctx_sched_init_ctx(struct kbase_context *kctx);
  * It can be called as many times as necessary. The address space will be
  * assigned to the context for as long as there is a reference to said context.
  *
- * The kbase_device::mmu_hw_mutex and kbase_device::hwaccess_lock locks must be
- * held whilst calling this function.
- *
  * Return: The address space that the context has been assigned to or
  *         KBASEP_AS_NR_INVALID if no address space was available.
  */

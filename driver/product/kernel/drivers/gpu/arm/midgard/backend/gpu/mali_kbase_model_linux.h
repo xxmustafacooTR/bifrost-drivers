@@ -55,7 +55,7 @@
  *
  * @kbdev: Kbase device.
  *
- * Specific model hook is implemented by midgard_model_create()
+ * Specific model hook is implemented by bv_r48p0_model_create()
  *
  * Return: 0 on success, error code otherwise.
  */
@@ -66,12 +66,12 @@ int kbase_gpu_device_create(struct kbase_device *kbdev);
  *
  * @kbdev: Kbase device.
  *
- * Specific model hook is implemented by midgard_model_destroy()
+ * Specific model hook is implemented by bv_r48p0_model_destroy()
  */
 void kbase_gpu_device_destroy(struct kbase_device *kbdev);
 
 /**
- * midgard_model_create() - Private create function.
+ * bv_r48p0_model_create() - Private create function.
  *
  * @kbdev: Kbase device.
  *
@@ -79,19 +79,19 @@ void kbase_gpu_device_destroy(struct kbase_device *kbdev);
  *
  * Return: Model handle.
  */
-void *midgard_model_create(struct kbase_device *kbdev);
+void *bv_r48p0_model_create(struct kbase_device *kbdev);
 
 /**
- * midgard_model_destroy() - Private destroy function.
+ * bv_r48p0_model_destroy() - Private destroy function.
  *
  * @h: Model handle.
  *
  * This hook is specific to the model built in Kbase.
  */
-void midgard_model_destroy(void *h);
+void bv_r48p0_model_destroy(void *h);
 
 /**
- * midgard_model_write_reg() - Private model write function.
+ * bv_r48p0_model_write_reg() - Private model write function.
  *
  * @h: Model handle.
  * @addr: Address at which to write.
@@ -99,10 +99,10 @@ void midgard_model_destroy(void *h);
  *
  * This hook is specific to the model built in Kbase.
  */
-void midgard_model_write_reg(void *h, u32 addr, u32 value);
+void bv_r48p0_model_write_reg(void *h, u32 addr, u32 value);
 
 /**
- * midgard_model_read_reg() - Private model read function.
+ * bv_r48p0_model_read_reg() - Private model read function.
  *
  * @h: Model handle.
  * @addr: Address from which to read.
@@ -110,7 +110,7 @@ void midgard_model_write_reg(void *h, u32 addr, u32 value);
  *
  * This hook is specific to the model built in Kbase.
  */
-void midgard_model_read_reg(void *h, u32 addr, u32 *const value);
+void bv_r48p0_model_read_reg(void *h, u32 addr, u32 *const value);
 
 /**
  * gpu_device_raise_irq() - Private IRQ raise function.

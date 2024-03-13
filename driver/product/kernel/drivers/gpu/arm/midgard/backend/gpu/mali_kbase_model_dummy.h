@@ -38,8 +38,8 @@
 #ifndef _KBASE_MODEL_DUMMY_H_
 #define _KBASE_MODEL_DUMMY_H_
 
-#include <uapi/gpu/arm/midgard/backend/gpu/mali_kbase_model_linux.h>
-#include <uapi/gpu/arm/midgard/backend/gpu/mali_kbase_model_dummy.h>
+#include <uapi/gpu/arm/bv_r48p0/backend/gpu/mali_kbase_model_linux.h>
+#include <uapi/gpu/arm/bv_r48p0/backend/gpu/mali_kbase_model_dummy.h>
 
 #define model_error_log(module, ...) pr_err(__VA_ARGS__)
 
@@ -168,7 +168,7 @@ struct gpu_model_prfcnt_en {
 	u32 shader;
 };
 
-void midgard_set_error(u32 job_slot);
+void bv_r48p0_set_error(u32 job_slot);
 int job_atom_inject_error(struct kbase_error_params *params);
 int gpu_model_control(void *h, struct kbase_model_control_params *params);
 
@@ -214,7 +214,7 @@ void gpu_model_prfcnt_dump_request(uint32_t *sample_buf, struct gpu_model_prfcnt
 /**
  * gpu_model_glb_request_job_irq() - Trigger job interrupt with global request
  *                                   flag set.
- * @model: Model pointer returned by midgard_model_create().
+ * @model: Model pointer returned by bv_r48p0_model_create().
  */
 void gpu_model_glb_request_job_irq(void *model);
 #endif /* MALI_USE_CSF */

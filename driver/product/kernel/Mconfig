@@ -21,7 +21,7 @@
 menu "Kernel menu"
 
 source "kernel/drivers/base/arm/Mconfig"
-source "kernel/drivers/gpu/arm/midgard/Mconfig"
+source "kernel/drivers/gpu/arm/bv_r48p0/Mconfig"
 source "kernel/drivers/hwtracing/coresight/mali/Mconfig"
 
 endmenu

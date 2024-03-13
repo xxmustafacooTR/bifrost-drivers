@@ -33,7 +33,7 @@ u64 kbase_reg_get_gpu_id(struct kbase_device *kbdev)
 	u32 val[2] = { 0 };
 
 	spin_lock_irqsave(&kbdev->reg_op_lock, flags);
-	midgard_model_read_reg(kbdev->model, GPU_CONTROL_REG(GPU_ID), &val[0]);
+	bv_r48p0_model_read_reg(kbdev->model, GPU_CONTROL_REG(GPU_ID), &val[0]);
 	spin_unlock_irqrestore(&kbdev->reg_op_lock, flags);
 
 
@@ -55,7 +55,7 @@ u32 kbase_reg_read32(struct kbase_device *kbdev, u32 reg_enum)
 	offset = kbdev->regmap.regs[reg_enum] - kbdev->reg;
 
 	spin_lock_irqsave(&kbdev->reg_op_lock, flags);
-	midgard_model_read_reg(kbdev->model, offset, &val);
+	bv_r48p0_model_read_reg(kbdev->model, offset, &val);
 	spin_unlock_irqrestore(&kbdev->reg_op_lock, flags);
 
 	return val;
@@ -77,8 +77,8 @@ u64 kbase_reg_read64(struct kbase_device *kbdev, u32 reg_enum)
 	offset = kbdev->regmap.regs[reg_enum] - kbdev->reg;
 
 	spin_lock_irqsave(&kbdev->reg_op_lock, flags);
-	midgard_model_read_reg(kbdev->model, offset, &val32[0]);
-	midgard_model_read_reg(kbdev->model, offset + 4, &val32[1]);
+	bv_r48p0_model_read_reg(kbdev->model, offset, &val32[0]);
+	bv_r48p0_model_read_reg(kbdev->model, offset + 4, &val32[1]);
 	spin_unlock_irqrestore(&kbdev->reg_op_lock, flags);
 
 	return (u64)val32[0] | ((u64)val32[1] << 32);
@@ -101,9 +101,9 @@ u64 kbase_reg_read64_coherent(struct kbase_device *kbdev, u32 reg_enum)
 
 	spin_lock_irqsave(&kbdev->reg_op_lock, flags);
 	do {
-		midgard_model_read_reg(kbdev->model, offset + 4, &hi1);
-		midgard_model_read_reg(kbdev->model, offset, &lo);
-		midgard_model_read_reg(kbdev->model, offset + 4, &hi2);
+		bv_r48p0_model_read_reg(kbdev->model, offset + 4, &hi1);
+		bv_r48p0_model_read_reg(kbdev->model, offset, &lo);
+		bv_r48p0_model_read_reg(kbdev->model, offset + 4, &hi2);
 	} while (hi1 != hi2);
 	spin_unlock_irqrestore(&kbdev->reg_op_lock, flags);
 
@@ -125,7 +125,7 @@ void kbase_reg_write32(struct kbase_device *kbdev, u32 reg_enum, u32 value)
 	offset = kbdev->regmap.regs[reg_enum] - kbdev->reg;
 
 	spin_lock_irqsave(&kbdev->reg_op_lock, flags);
-	midgard_model_write_reg(kbdev->model, offset, value);
+	bv_r48p0_model_write_reg(kbdev->model, offset, value);
 	spin_unlock_irqrestore(&kbdev->reg_op_lock, flags);
 }
 KBASE_EXPORT_TEST_API(kbase_reg_write32);
@@ -144,8 +144,8 @@ void kbase_reg_write64(struct kbase_device *kbdev, u32 reg_enum, u64 value)
 	offset = kbdev->regmap.regs[reg_enum] - kbdev->reg;
 
 	spin_lock_irqsave(&kbdev->reg_op_lock, flags);
-	midgard_model_write_reg(kbdev->model, offset, value & 0xFFFFFFFF);
-	midgard_model_write_reg(kbdev->model, offset + 4, value >> 32);
+	bv_r48p0_model_write_reg(kbdev->model, offset, value & 0xFFFFFFFF);
+	bv_r48p0_model_write_reg(kbdev->model, offset + 4, value >> 32);
 	spin_unlock_irqrestore(&kbdev->reg_op_lock, flags);
 }
 KBASE_EXPORT_TEST_API(kbase_reg_write64);

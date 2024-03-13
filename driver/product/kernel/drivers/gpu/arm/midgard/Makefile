@@ -33,7 +33,7 @@ endif
 # is not supported for out-of-tree builds.
 #
 CONFIGS :=
-ifeq ($(MALI_KCONFIG_EXT_PREFIX),)
+ifeq (,)
     CONFIG_MALI_MIDGARD ?= m
     ifeq ($(CONFIG_MALI_MIDGARD),m)
         CONFIG_MALI_PLATFORM_NAME ?= "devicetree"
@@ -205,7 +205,7 @@ MAKE_ARGS := $(foreach config,$(CONFIGS), \
                         $(value config)=$(value $(value config)), \
                         $(value config)=n))
 
-ifeq ($(MALI_KCONFIG_EXT_PREFIX),)
+ifeq (,)
     MAKE_ARGS += CONFIG_MALI_PLATFORM_NAME=$(CONFIG_MALI_PLATFORM_NAME)
 endif
 
@@ -219,7 +219,7 @@ EXTRA_CFLAGS := $(foreach config,$(CONFIGS), \
                     $(if $(filter y m,$(value $(value config))), \
                         -D$(value config)=1))
 
-ifeq ($(MALI_KCONFIG_EXT_PREFIX),)
+ifeq (,)
     EXTRA_CFLAGS += -DCONFIG_MALI_PLATFORM_NAME='\"$(CONFIG_MALI_PLATFORM_NAME)\"'
     EXTRA_CFLAGS += -DCONFIG_MALI_NO_MALI_DEFAULT_GPU='\"$(CONFIG_MALI_NO_MALI_DEFAULT_GPU)\"'
 endif

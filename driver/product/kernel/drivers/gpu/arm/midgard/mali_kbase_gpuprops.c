@@ -31,11 +31,13 @@
 #include <mali_kbase_hwaccess_gpuprops.h>
 
 #include <mali_kbase_config_defaults.h>
-#include <uapi/gpu/arm/midgard/mali_kbase_ioctl.h>
+#include <uapi/gpu/arm/bv_r48p0/mali_kbase_ioctl.h>
 #include <linux/clk.h>
 #include <backend/gpu/mali_kbase_pm_internal.h>
 #include <linux/of_platform.h>
 #include <linux/moduleparam.h>
+
+#include <mali_exynos_kbase_entrypoint.h>
 
 #define PRIV_DATA_REGDUMP(kbdev) \
 	(((struct kbasep_gpuprops_priv_data *)((kbdev)->gpu_props.priv_data))->regdump)
@@ -272,6 +274,10 @@ static int kbase_gpuprops_get_props(struct kbase_device *kbdev)
 
 	if (gpu_props->max_config.core_mask)
 		kbase_gpuprops_update_max_config_props(kbdev);
+
+	/* EXYNOS TODO: this is only called once during init. may be there's a better place for this call? */
+	mali_exynos_llc_set_awuser();
+	mali_exynos_llc_set_aruser();
 
 	return 0;
 }

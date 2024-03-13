@@ -31,7 +31,7 @@
 #endif
 
 #include <hw_access/mali_kbase_hw_access_regmap.h>
-#include <uapi/gpu/arm/midgard/mali_base_kernel.h>
+#include <uapi/gpu/arm/bv_r48p0/mali_base_kernel.h>
 #include <mali_kbase_hw.h>
 #include "mali_kbase_pm.h"
 #include "mali_kbase_defs.h"
@@ -41,8 +41,13 @@
 #include "mali_kbase_mem_migrate.h"
 
 #include <linux/version_compat_defs.h>
-#include <linux/sched/mm.h>
 #include <linux/kref.h>
+
+#if KERNEL_VERSION(4, 14, 0) < LINUX_VERSION_CODE
+#include <linux/sched/mm.h>
+#else
+#include <linux/sched.h>
+#endif
 
 static inline void kbase_process_page_usage_inc(struct kbase_context *kctx, int pages);
 

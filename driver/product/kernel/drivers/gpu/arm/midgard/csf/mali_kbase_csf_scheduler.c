@@ -31,7 +31,7 @@
 #include <backend/gpu/mali_kbase_pm_internal.h>
 #include <linux/export.h>
 #include <csf/mali_kbase_csf_registers.h>
-#include <uapi/gpu/arm/midgard/mali_base_kernel.h>
+#include <uapi/gpu/arm/bv_r48p0/mali_base_kernel.h>
 #include <mali_kbase_hwaccess_time.h>
 #include "mali_kbase_csf_tiler_heap_reclaim.h"
 #include "mali_kbase_csf_mcu_shared_reg.h"

@@ -25,7 +25,7 @@
 #include <mali_kbase.h>
 #include "mali_kbase_hw_access.h"
 
-#include <uapi/gpu/arm/midgard/gpu/mali_kbase_gpu_id.h>
+#include <uapi/gpu/arm/bv_r48p0/gpu/mali_kbase_gpu_id.h>
 
 bool kbase_reg_is_size64(struct kbase_device *kbdev, u32 reg_enum)
 {

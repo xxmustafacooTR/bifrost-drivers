@@ -54,7 +54,7 @@ bob_defaults {
     tags: ["owner:{{.android_module_owner}}"],
     // These flags should be synchronised with that defined in
     // kernel/drivers/base/arm/Makefile and
-    // kernel/drivers/gpu/arm/midgard/Makefile
+    // kernel/drivers/gpu/arm/bv_r48p0/Makefile
     cflags: [
         "-Wall",
         "-Werror",
