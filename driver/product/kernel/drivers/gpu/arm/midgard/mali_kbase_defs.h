@@ -1360,7 +1360,6 @@ struct kbase_device {
 
 	struct notifier_block oom_notifier_block;
 
-
 	struct kbase_mem_migrate mem_migrate;
 
 #if MALI_USE_CSF && IS_ENABLED(CONFIG_SYNC_FILE)
