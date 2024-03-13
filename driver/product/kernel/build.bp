@@ -79,6 +79,7 @@ bob_defaults {
         "-DKBUILD_EXTRA_WARN2",
         // This warning is disabled to avoid build failures in some kernel versions
         "-Wno-ignored-qualifiers",
+        "-Wframe-larger-than=4096",
     ],
     target_toolchain_gnu: {
         cflags: [
