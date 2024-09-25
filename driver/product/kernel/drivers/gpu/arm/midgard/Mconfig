@@ -188,7 +188,7 @@ config MALI_CORESTACK
 
 config PAGE_MIGRATION_SUPPORT
 	bool "Compile with page migration support"
-	depends on BACKEND_KERNEL
+	depends on MALI_MIDGARD && MALI_EXPERT
 	default y
 	default n if ANDROID
 	help

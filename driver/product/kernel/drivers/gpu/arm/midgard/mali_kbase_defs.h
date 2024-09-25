@@ -1367,9 +1367,7 @@ struct kbase_device {
 	atomic_t live_fence_metadata;
 #endif
 	struct kmem_cache *va_region_slab;
-#if GPU_PAGES_PER_CPU_PAGE > 1
 	struct kmem_cache *page_metadata_slab;
-#endif
 
 #if IS_ENABLED(CONFIG_MALI_TRACE_POWER_GPU_WORK_PERIOD)
 	/**
@@ -1382,6 +1380,7 @@ struct kbase_device {
 #endif
 
 	struct notifier_block pcm_prioritized_process_nb;
+
 };
 
 /**
